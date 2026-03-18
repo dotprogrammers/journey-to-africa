@@ -33,35 +33,6 @@ export function Header() {
         {/* Desktop Navigation */}
         <nav className="hidden items-center gap-10 md:flex">
           <Link
-            href="#products"
-            className={`text-sm transition-colors ${isScrolled ? "text-muted-foreground hover:text-foreground" : "text-white/70 hover:text-white"}`}
-          >
-            Products
-          </Link>
-          <Link
-            href="#technology"
-            className={`text-sm transition-colors ${isScrolled ? "text-muted-foreground hover:text-foreground" : "text-white/70 hover:text-white"}`}
-          >
-            Technology
-          </Link>
-          <Link
-            href="#gallery"
-            className={`text-sm transition-colors ${isScrolled ? "text-muted-foreground hover:text-foreground" : "text-white/70 hover:text-white"}`}
-          >
-            Gallery
-          </Link>
-          <Link
-            href="#accessories"
-            className={`text-sm transition-colors ${isScrolled ? "text-muted-foreground hover:text-foreground" : "text-white/70 hover:text-white"}`}
-          >
-            Accessories
-                    {/* Logo / Brand Name */}
-                    <Link href="#" className={`text-lg font-bold tracking-tight transition-colors duration-300 ${isScrolled ? "text-foreground" : "text-white"}`}
-                    >
-                      JOURNEY TO AFRICA
-                    </Link>
-        <nav className="hidden items-center gap-8 md:flex">
-          <Link
             href="#experience"
             className={`text-sm font-medium transition-colors ${isScrolled ? "text-muted-foreground hover:text-foreground" : "text-white/70 hover:text-white"}`}
           >
@@ -85,7 +56,6 @@ export function Header() {
           >
             Reserve
           </Link>
-        </nav>
         <div className="hidden items-center gap-6 md:flex">
           <Link
             href="#reserve"
