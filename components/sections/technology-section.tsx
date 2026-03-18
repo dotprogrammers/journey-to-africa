@@ -105,105 +105,55 @@ export function TechnologySection() {
       setScrollProgress(progress);
 
       // Text scroll progress
-      if (textSectionRef.current) {
-        const textRect = textSectionRef.current.getBoundingClientRect();
-        const windowHeight = window.innerHeight;
-        
-        const startOffset = windowHeight * 0.9;
-        const endOffset = windowHeight * 0.1;
-        
-        const totalDistance = startOffset - endOffset;
-        const currentPosition = startOffset - textRect.top;
-        
-        const newTextProgress = Math.max(0, Math.min(1, currentPosition / totalDistance));
-        setTextProgress(newTextProgress);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-    
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
-
-  // Title fades out first (0 to 0.2)
-  const titleOpacity = Math.max(0, 1 - (scrollProgress / 0.2));
-  
-  // Image transforms start after title fades (0.2 to 1)
-  const imageProgress = Math.max(0, Math.min(1, (scrollProgress - 0.2) / 0.8));
-  
-  // Smooth interpolations
-  const centerWidth = 100 - (imageProgress * 58); // 100% to 42%
-  const centerHeight = 100 - (imageProgress * 30); // 100% to 70%
-  const sideWidth = imageProgress * 22; // 0% to 22%
-  const sideOpacity = imageProgress;
-  const sideTranslateLeft = -100 + (imageProgress * 100); // -100% to 0%
-  const sideTranslateRight = 100 - (imageProgress * 100); // 100% to 0%
-  const borderRadius = imageProgress * 24; // 0px to 24px
-  const gap = imageProgress * 16; // 0px to 16px
-
-  // Calculate grayscale for text section based on textProgress
-  const grayscaleAmount = Math.round((1 - textProgress) * 100);
-
-  return (
-    <section ref={sectionRef} className="relative bg-foreground">
-      {/* Sticky container for scroll animation */}
-      <div className="sticky top-0 h-screen overflow-hidden">
-        <div className="flex h-full w-full items-center justify-center">
-          {/* Bento Grid Container */}
-          <div 
-            className="relative flex h-full w-full items-stretch justify-center"
-            style={{ gap: `${gap}px`, padding: `${imageProgress * 16}px` }}
-          >
-            
-            {/* Left Column */}
-            <div 
-              className="flex flex-col will-change-transform"
-              style={{
-                width: `${sideWidth}%`,
-                gap: `${gap}px`,
-                transform: `translateX(${sideTranslateLeft}%)`,
-                opacity: sideOpacity,
-              }}
-            >
-              {sideImages.filter(img => img.position === "left").map((img, idx) => (
-                <div 
-                  key={idx} 
-                  className="relative overflow-hidden will-change-transform"
-                  style={{
-                    flex: img.span,
-                    borderRadius: `${borderRadius}px`,
-                  }}
-                >
-                  <Image
-                    src={img.src || "/placeholder.svg"}
-                    alt={img.alt}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-              ))}
+      return (
+        <section id="experience" className="bg-background">
+          {/* Section Label */}
+          <div className="px-6 py-20 text-center md:px-12 md:py-28 lg:px-20 lg:py-32 lg:pb-20">
+            <p className="text-xs uppercase tracking-widest text-muted-foreground font-semibold mb-4">The Experience</p>
+            <h2 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl lg:text-5xl mb-6">
+              Built for Legacy.<br />Designed for Return.
+            </h2>
+          </div>
+          {/* Six Feature/Benefit Cards */}
+          <div className="grid grid-cols-1 gap-6 px-6 pb-20 md:grid-cols-2 lg:grid-cols-3 md:px-12 lg:px-20">
+            {/* Feature 1 */}
+            <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-start">
+              <span className="text-lg font-bold text-foreground mb-2">History</span>
+              <span className="text-sm font-medium text-muted-foreground mb-1">Cape Coast & Elmina Experience</span>
+              <p className="text-sm text-muted-foreground">Walk through the historic sites that anchor the journey in truth, memory, and global Black history.</p>
             </div>
-
-            {/* Main Center Image */}
-            <div 
-              className="relative overflow-hidden will-change-transform"
-              style={{
-                width: `${centerWidth}%`,
-                height: "100%",
-                flex: "0 0 auto",
-                borderRadius: `${borderRadius}px`,
-              }}
-            >
-              <Image
-                src="https://images.pexels.com/photos/1687845/pexels-photo-1687845.jpeg?auto=compress&cs=tinysrgb&w=2000"
-                alt="Aerial view of camping expedition in wilderness"
-                fill
-                className="object-cover"
-              />
-              <div className="absolute inset-0 bg-foreground/40" />
+            {/* Feature 2 */}
+            <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-start">
+              <span className="text-lg font-bold text-foreground mb-2">Reflection</span>
+              <span className="text-sm font-medium text-muted-foreground mb-1">Assin Manso Ceremony</span>
+              <p className="text-sm text-muted-foreground">A powerful moment of remembrance, reconnection, and personal reflection.</p>
+            </div>
+            {/* Feature 3 */}
+            <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-start">
+              <span className="text-lg font-bold text-foreground mb-2">Culture</span>
+              <span className="text-sm font-medium text-muted-foreground mb-1">Juneteenth in Ghana</span>
+              <p className="text-sm text-muted-foreground">Celebrate freedom, heritage, and contemporary African identity in community.</p>
+            </div>
+            {/* Feature 4 */}
+            <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-start">
+              <span className="text-lg font-bold text-foreground mb-2">Connection</span>
+              <span className="text-sm font-medium text-muted-foreground mb-1">Business Networking Event</span>
+              <p className="text-sm text-muted-foreground">Meet founders, professionals, and ecosystem builders shaping Ghana’s future.</p>
+            </div>
+            {/* Feature 5 */}
+            <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-start">
+              <span className="text-lg font-bold text-foreground mb-2">Spirituality</span>
+              <span className="text-sm font-medium text-muted-foreground mb-1">Mosque & Dialogue Visit</span>
+              <p className="text-sm text-muted-foreground">Engage faith, culture, and African spiritual life in a grounded and respectful setting.</p>
+            </div>
+            {/* Feature 6 */}
+            <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-start">
+              <span className="text-lg font-bold text-foreground mb-2">Community</span>
+              <span className="text-sm font-medium text-muted-foreground mb-1">Welcome & Farewell Legacy Dinners</span>
+              <p className="text-sm text-muted-foreground">Begin and end the experience in fellowship, conversation, and intentional connection.</p>
+            </div>
+          </div>
+        </section>
               
               {/* Title Text - Fades out word by word with blur */}
               <div 

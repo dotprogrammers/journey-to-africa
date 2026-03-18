@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
-const word = "EVASION";
+const word = "JOURNEY TO AFRICA";
 
 const sideImages = [
   {
@@ -85,7 +85,23 @@ export function HeroSection() {
             className="relative flex h-full w-full items-stretch justify-center"
             style={{ gap: `${gap}px`, padding: `${imageProgress * 16}px`, paddingBottom: `${60 + (imageProgress * 40)}px` }}
           >
-            
+            {/* Responsive columns and hero image retained for visual effect */}
+            {/* Main Hero Title and Supporting Lines */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-4 md:px-12 lg:px-20">
+              <p className="text-base md:text-lg font-semibold text-white mb-2 text-center">Juneteenth Legacy & Investment Experience</p>
+              <h1 className="text-[8vw] md:text-[5vw] lg:text-[4vw] font-bold leading-tight tracking-tighter text-white text-center mb-4">
+                JOURNEY TO AFRICA
+              </h1>
+              <h2 className="text-lg md:text-2xl lg:text-3xl font-medium text-white text-center mb-2">Return to Ghana with purpose.</h2>
+              <p className="max-w-xl mx-auto text-sm md:text-base lg:text-lg text-white/80 text-center mb-6">
+                A 10-day curated diaspora journey through Ghana centered on history, reflection, culture, and meaningful connection to Africa’s future.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center mt-2">
+                <a href="#reserve" className="px-6 py-3 rounded-full bg-foreground text-background font-semibold text-base md:text-lg shadow-md hover:opacity-90 transition">Reserve Your Place</a>
+                <a href="#experience" className="px-6 py-3 rounded-full bg-white text-foreground font-semibold text-base md:text-lg shadow-md hover:bg-white/90 transition">View Experience</a>
+              </div>
+            </div>
+            {/* ...existing image grid and animation code... */}
             {/* Left Column */}
             <div 
               className="flex flex-col will-change-transform"
@@ -188,10 +204,8 @@ export function HeroSection() {
           </div>
         </div>
       </div>
-
       {/* Scroll space to enable animation */}
       <div className="h-[200vh]" />
-
       {/* Tagline Section */}
       <div className="px-6 pt-32 pb-28 md:pt-48 md:px-12 md:pb-36 lg:px-20 lg:pt-56 lg:pb-44">
         <p className="mx-auto max-w-2xl text-center text-2xl leading-relaxed text-muted-foreground md:text-3xl lg:text-[2.5rem] lg:leading-snug">

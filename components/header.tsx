@@ -55,72 +55,91 @@ export function Header() {
             className={`text-sm transition-colors ${isScrolled ? "text-muted-foreground hover:text-foreground" : "text-white/70 hover:text-white"}`}
           >
             Accessories
-          </Link>
-        </nav>
-
-        {/* CTA */}
+                    {/* Logo / Brand Name */}
+                    <Link href="#" className={`text-lg font-bold tracking-tight transition-colors duration-300 ${isScrolled ? "text-foreground" : "text-white"}`}
+                    >
+                      JOURNEY TO AFRICA
+                    </Link>
         <div className="hidden items-center gap-6 md:flex">
           <Link
-            href="#reserve"
-            className={`px-4 py-2 text-sm font-medium transition-all rounded-full ${isScrolled ? "bg-foreground text-background hover:opacity-80" : "bg-white text-foreground hover:bg-white/90"}`}
-          >
-            Buy the product
-          </Link>
-        </div>
-
-        {/* Mobile Menu Button */}
-        <button
-          type="button"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className={`transition-colors md:hidden ${isScrolled ? "text-foreground" : "text-white"}`}
-          aria-label="Toggle menu"
-        >
-          {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-      </div>
-
-      {/* Mobile Menu */}
-      {isMenuOpen && (
-        <div className="border-t border-border bg-background px-6 py-8 md:hidden rounded-b-2xl">
-          <nav className="flex flex-col gap-6">
-            <Link
-              href="#products"
-              className="text-lg text-foreground"
-              onClick={() => setIsMenuOpen(false)}
+                    <nav className="hidden items-center gap-8 md:flex">
+                      <Link
+                        href="#experience"
+                        className={`text-sm font-medium transition-colors ${isScrolled ? "text-muted-foreground hover:text-foreground" : "text-white/70 hover:text-white"}`}
+                      >
+                        Experience
+                      </Link>
+                      <Link
+                        href="#legacy"
+                        className={`text-sm font-medium transition-colors ${isScrolled ? "text-muted-foreground hover:text-foreground" : "text-white/70 hover:text-white"}`}
+                      >
+                        Legacy
+                      </Link>
+                      <Link
+                        href="#gallery"
+                        className={`text-sm font-medium transition-colors ${isScrolled ? "text-muted-foreground hover:text-foreground" : "text-white/70 hover:text-white"}`}
+                      >
+                        Gallery
+                      </Link>
+                      <Link
+                        href="#reserve"
+                        className={`text-sm font-medium transition-colors ${isScrolled ? "text-muted-foreground hover:text-foreground" : "text-white/70 hover:text-white"}`}
+                      >
+                        Reserve
+                      </Link>
+                    </nav>
             >
               Products
-            </Link>
-            <Link
-              href="#technology"
-              className="text-lg text-foreground"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Technology
-            </Link>
+                    <div className="hidden items-center gap-6 md:flex">
+                      <Link
+                        href="#reserve"
+                        className={`px-4 py-2 text-sm font-semibold transition-all rounded-full ${isScrolled ? "bg-foreground text-background hover:opacity-80" : "bg-white text-foreground hover:bg-white/90"}`}
+                      >
+                        Apply Now
+                      </Link>
+                    </div>
             <Link
               href="#gallery"
               className="text-lg text-foreground"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Gallery
-            </Link>
-            <Link
-              href="#accessories"
-              className="text-lg text-foreground"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Accessories
-            </Link>
-            <Link
-              href="#reserve"
-              className="mt-4 bg-foreground px-5 py-3 text-center text-sm font-medium text-background rounded-full"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Reserve
-            </Link>
-          </nav>
-        </div>
-      )}
-    </header>
-  );
-}
+                  {/* Mobile Menu */}
+                  {isMenuOpen && (
+                    <div className="border-t border-border bg-background px-6 py-8 md:hidden rounded-b-2xl">
+                      <nav className="flex flex-col gap-6">
+                        <Link
+                          href="#experience"
+                          className="text-lg text-foreground font-medium"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          Experience
+                        </Link>
+                        <Link
+                          href="#legacy"
+                          className="text-lg text-foreground font-medium"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          Legacy
+                        </Link>
+                        <Link
+                          href="#gallery"
+                          className="text-lg text-foreground font-medium"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          Gallery
+                        </Link>
+                        <Link
+                          href="#reserve"
+                          className="text-lg text-foreground font-medium"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          Reserve
+                        </Link>
+                        <Link
+                          href="#reserve"
+                          className="mt-4 bg-foreground px-5 py-3 text-center text-sm font-semibold text-background rounded-full"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          Apply Now
+                        </Link>
+                      </nav>
+                    </div>
+                  )}

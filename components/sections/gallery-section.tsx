@@ -91,34 +91,22 @@ export function GallerySection() {
     <section 
       id="gallery"
       ref={galleryRef}
-      className="relative bg-background"
+      className="relative bg-background py-20 md:py-32 lg:py-40"
       style={{ height: sectionHeight }}
     >
+      <div className="max-w-4xl mx-auto px-6 md:px-12 lg:px-20 mb-10">
+        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-2 text-center">Moments of Return</h2>
+        <p className="text-base md:text-lg text-muted-foreground text-center mb-6">History. Celebration. Reflection. Connection.</p>
+      </div>
       {/* Sticky container */}
       <div className="sticky top-0 h-screen overflow-hidden">
-        <div className="flex h-full items-center">
-          {/* Horizontal scrolling container */}
-          <div 
-            ref={containerRef}
-            className="flex gap-6 px-6"
-            style={{
-              transform: `translate3d(${translateX}px, 0, 0)`,
-              WebkitTransform: `translate3d(${translateX}px, 0, 0)`,
-              backfaceVisibility: 'hidden',
-              WebkitBackfaceVisibility: 'hidden',
-              perspective: 1000,
-              WebkitPerspective: 1000,
-              touchAction: 'pan-y',
-            }}
-          >
+        <div className="flex h-full items-center justify-center">
+          {/* Responsive grid gallery */}
+          <div className="grid grid-cols-1 gap-6 px-6 md:grid-cols-2 lg:grid-cols-4 md:px-12 lg:px-20 w-full">
             {images.map((image, index) => (
               <div
                 key={index}
-                className="relative h-[70vh] w-[85vw] flex-shrink-0 overflow-hidden rounded-2xl md:w-[60vw] lg:w-[45vw]"
-                style={{
-                  transform: 'translateZ(0)',
-                  WebkitTransform: 'translateZ(0)',
-                }}
+                className="relative aspect-[4/3] overflow-hidden rounded-2xl shadow-md"
               >
                 <Image
                   src={image.src || "/placeholder.svg"}

@@ -55,82 +55,13 @@ export function PhilosophySection() {
   }, [updateTransforms]);
 
   return (
-    <section id="products" className="bg-background">
-      {/* Scroll-Animated Product Grid */}
-      <div ref={sectionRef} className="relative" style={{ height: "200vh" }}>
-        <div className="sticky top-0 h-screen flex items-center justify-center">
-          <div className="relative w-full">
-            {/* Title - positioned behind the blocks */}
-            <div 
-              className="absolute inset-0 flex items-center justify-center pointer-events-none z-0"
-              style={{ opacity: titleOpacity }}
-            >
-              <h2 className="text-[12vw] font-medium leading-[0.95] tracking-tighter text-foreground md:text-[10vw] lg:text-[8vw] text-center px-6">
-                Meet Alpine & Forest.
-              </h2>
-            </div>
-
-            {/* Product Grid */}
-            <div className="relative z-10 grid grid-cols-1 gap-4 px-6 md:grid-cols-2 md:px-12 lg:px-20">
-              {/* Alpine Image - comes from left */}
-              <div 
-                className="relative aspect-[4/3] overflow-hidden rounded-2xl"
-                style={{
-                  transform: `translate3d(${alpineTranslateX}%, 0, 0)`,
-                  WebkitTransform: `translate3d(${alpineTranslateX}%, 0, 0)`,
-                  backfaceVisibility: 'hidden',
-                  WebkitBackfaceVisibility: 'hidden',
-                }}
-              >
-                <Image
-                  src="https://images.pexels.com/photos/1294731/pexels-photo-1294731.jpeg?auto=compress&cs=tinysrgb&w=1000"
-                  alt="V1 Expedition Backpack in alpine setting"
-                  fill
-                  className="object-cover"
-                />
-                <div className="absolute bottom-6 left-6">
-                  <span className="backdrop-blur-md px-4 py-2 text-sm font-medium rounded-full bg-[rgba(255,255,255,0.2)] text-white">
-                    Alpine $299
-                  </span>
-                </div>
-              </div>
-
-              {/* Forest Image - comes from right */}
-              <div 
-                className="relative aspect-[4/3] overflow-hidden rounded-2xl"
-                style={{
-                  transform: `translate3d(${forestTranslateX}%, 0, 0)`,
-                  WebkitTransform: `translate3d(${forestTranslateX}%, 0, 0)`,
-                  backfaceVisibility: 'hidden',
-                  WebkitBackfaceVisibility: 'hidden',
-                }}
-              >
-                <Image
-                  src="https://images.pexels.com/photos/1183986/pexels-photo-1183986.jpeg?auto=compress&cs=tinysrgb&w=1000"
-                  alt="V1 Thermal mug in forest setting"
-                  fill
-                  className="object-cover"
-                />
-                <div className="absolute bottom-6 left-6">
-                  <span className="backdrop-blur-md px-4 py-2 text-sm font-medium rounded-full bg-[rgba(255,255,255,0.2)] text-white">
-                    Forest $199
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Description */}
+    <section id="intro" className="bg-background">
+      {/* Short Intro / First Generation Style Section */}
       <div className="px-6 py-20 md:px-12 md:py-28 lg:px-20 lg:py-36 lg:pb-14">
         <div className="text-center">
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">
-            First generation
-          </p>
-          <p className="mt-8 leading-relaxed text-muted-foreground text-3xl text-center">
-            Alpine & Forest are high-tech outdoor accessories designed for modern adventurers. 
-            Lightweight, durable, and engineered for extreme conditions.
+          <p className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Flagship Experience</p>
+          <p className="mt-8 leading-relaxed text-foreground text-2xl md:text-3xl lg:text-4xl text-center font-medium">
+            Journey to Africa is a premium diaspora experience designed for those who want more than tourism. It brings together historical remembrance, spiritual reflection, cultural immersion, and structured exposure to business and investment pathways in Ghana.
           </p>
         </div>
       </div>
