@@ -103,110 +103,63 @@ export function TechnologySection() {
       const progress = Math.max(0, Math.min(1, scrolled / scrollableHeight));
       
       setScrollProgress(progress);
+    };
 
-      // Text scroll progress
-      return (
-        <section id="experience" className="bg-background">
-          {/* Section Label */}
-          <div className="px-6 py-20 text-center md:px-12 md:py-28 lg:px-20 lg:py-32 lg:pb-20">
-            <p className="text-xs uppercase tracking-widest text-muted-foreground font-semibold mb-4">The Experience</p>
-            <h2 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl lg:text-5xl mb-6">
-              Built for Legacy.<br />Designed for Return.
-            </h2>
-          </div>
-          {/* Six Feature/Benefit Cards */}
-          <div className="grid grid-cols-1 gap-6 px-6 pb-20 md:grid-cols-2 lg:grid-cols-3 md:px-12 lg:px-20">
-            {/* Feature 1 */}
-            <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-start">
-              <span className="text-lg font-bold text-foreground mb-2">History</span>
-              <span className="text-sm font-medium text-muted-foreground mb-1">Cape Coast & Elmina Experience</span>
-              <p className="text-sm text-muted-foreground">Walk through the historic sites that anchor the journey in truth, memory, and global Black history.</p>
-            </div>
-            {/* Feature 2 */}
-            <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-start">
-              <span className="text-lg font-bold text-foreground mb-2">Reflection</span>
-              <span className="text-sm font-medium text-muted-foreground mb-1">Assin Manso Ceremony</span>
-              <p className="text-sm text-muted-foreground">A powerful moment of remembrance, reconnection, and personal reflection.</p>
-            </div>
-            {/* Feature 3 */}
-            <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-start">
-              <span className="text-lg font-bold text-foreground mb-2">Culture</span>
-              <span className="text-sm font-medium text-muted-foreground mb-1">Juneteenth in Ghana</span>
-              <p className="text-sm text-muted-foreground">Celebrate freedom, heritage, and contemporary African identity in community.</p>
-            </div>
-            {/* Feature 4 */}
-            <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-start">
-              <span className="text-lg font-bold text-foreground mb-2">Connection</span>
-              <span className="text-sm font-medium text-muted-foreground mb-1">Business Networking Event</span>
-              <p className="text-sm text-muted-foreground">Meet founders, professionals, and ecosystem builders shaping Ghana’s future.</p>
-            </div>
-            {/* Feature 5 */}
-            <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-start">
-              <span className="text-lg font-bold text-foreground mb-2">Spirituality</span>
-              <span className="text-sm font-medium text-muted-foreground mb-1">Mosque & Dialogue Visit</span>
-              <p className="text-sm text-muted-foreground">Engage faith, culture, and African spiritual life in a grounded and respectful setting.</p>
-            </div>
-            {/* Feature 6 */}
-            <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-start">
-              <span className="text-lg font-bold text-foreground mb-2">Community</span>
-              <span className="text-sm font-medium text-muted-foreground mb-1">Welcome & Farewell Legacy Dinners</span>
-              <p className="text-sm text-muted-foreground">Begin and end the experience in fellowship, conversation, and intentional connection.</p>
-            </div>
-          </div>
-        </section>
-              
-              {/* Title Text - Fades out word by word with blur */}
-              <div 
-                className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center"
-              >
-                <h2 className="max-w-3xl font-medium leading-tight tracking-tight text-white md:text-5xl lg:text-7xl text-5xl">
-                  {["Technology", "Meets", "Wilderness."].map((word, index) => {
-                    // Each word fades out sequentially based on scrollProgress
-                    const wordFadeStart = index * 0.07; // Technology: 0, Meets: 0.07, Wilderness: 0.14
-                    const wordFadeEnd = wordFadeStart + 0.07;
-                    const wordProgress = Math.max(0, Math.min(1, (scrollProgress - wordFadeStart) / (wordFadeEnd - wordFadeStart)));
-                    const wordOpacity = 1 - wordProgress;
-                    const wordBlur = wordProgress * 10; // 0px to 10px blur
-                    
-                    return (
-                      <span
-                        key={index}
-                        className="inline-block"
-                        style={{
-                          opacity: wordOpacity,
-                          filter: `blur(${wordBlur}px)`,
-                          transition: 'opacity 0.1s linear, filter 0.1s linear',
-                          marginRight: index < 2 ? '0.3em' : '0',
-                        }}
-                      >
-                        {word}
-                        {index === 1 && <br />}
-                      </span>
-                    );
-                  })}
-                </h2>
-              </div>
-            </div>
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll(); // Initial check
+    
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
-            {/* Right Column */}
-            <div 
-              className="flex flex-col will-change-transform"
-              style={{
-                width: `${sideWidth}%`,
-                gap: `${gap}px`,
-                transform: `translateX(${sideTranslateRight}%)`,
-                opacity: sideOpacity,
-              }}
-            >
-              {sideImages.filter(img => img.position === "right").map((img, idx) => (
-                // ...render right side images here...
-              ))}
-            </div>
-            {/* Text Content */}
-            <div className="relative z-10 mx-auto max-w-4xl">
-              <ScrollRevealText text={descriptionText} />
-            </div>
+  return (
+    <section id="experience" className="bg-background">
+      {/* Section Label */}
+      <div className="px-6 py-20 text-center md:px-12 md:py-28 lg:px-20 lg:py-32 lg:pb-20">
+        <p className="text-xs uppercase tracking-widest text-muted-foreground font-semibold mb-4">The Experience</p>
+        <h2 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl lg:text-5xl mb-6">
+          Built for Legacy.<br />Designed for Return.
+        </h2>
+      </div>
+
+      {/* Six Feature/Benefit Cards */}
+      <div className="grid grid-cols-1 gap-6 px-6 pb-20 md:grid-cols-2 lg:grid-cols-3 md:px-12 lg:px-20">
+        {/* Feature 1 */}
+        <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-start">
+          <span className="text-lg font-bold text-foreground mb-2">History</span>
+          <span className="text-sm font-medium text-muted-foreground mb-1">Cape Coast & Elmina Experience</span>
+          <p className="text-sm text-muted-foreground">Walk through the historic sites that anchor the journey in truth, memory, and global Black history.</p>
         </div>
-      </section>
-    );
+        {/* Feature 2 */}
+        <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-start">
+          <span className="text-lg font-bold text-foreground mb-2">Reflection</span>
+          <span className="text-sm font-medium text-muted-foreground mb-1">Assin Manso Ceremony</span>
+          <p className="text-sm text-muted-foreground">A powerful moment of remembrance, reconnection, and personal reflection.</p>
+        </div>
+        {/* Feature 3 */}
+        <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-start">
+          <span className="text-lg font-bold text-foreground mb-2">Culture</span>
+          <span className="text-sm font-medium text-muted-foreground mb-1">Juneteenth in Ghana</span>
+          <p className="text-sm text-muted-foreground">Celebrate freedom, heritage, and contemporary African identity in community.</p>
+        </div>
+        {/* Feature 4 */}
+        <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-start">
+          <span className="text-lg font-bold text-foreground mb-2">Connection</span>
+          <span className="text-sm font-medium text-muted-foreground mb-1">Business Networking Event</span>
+          <p className="text-sm text-muted-foreground">Meet founders, professionals, and ecosystem builders shaping Ghana’s future.</p>
+        </div>
+        {/* Feature 5 */}
+        <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-start">
+          <span className="text-lg font-bold text-foreground mb-2">Spirituality</span>
+          <span className="text-sm font-medium text-muted-foreground mb-1">Mosque & Dialogue Visit</span>
+          <p className="text-sm text-muted-foreground">Engage faith, culture, and African spiritual life in a grounded and respectful setting.</p>
+        </div>
+        {/* Feature 6 */}
+        <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-start">
+          <span className="text-lg font-bold text-foreground mb-2">Community</span>
+          <span className="text-sm font-medium text-muted-foreground mb-1">Welcome & Farewell Legacy Dinners</span>
+          <p className="text-sm text-muted-foreground">Begin and end the experience in fellowship, conversation, and intentional connection.</p>
+        </div>
+      </div>
+    </section>
+  );
 }
