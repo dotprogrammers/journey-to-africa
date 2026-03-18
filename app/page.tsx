@@ -5,6 +5,12 @@ import { FeaturedProductsSection } from "@/components/sections/featured-products
 import { TechnologySection } from "@/components/sections/technology-section";
 import { GallerySection } from "@/components/sections/gallery-section";
 import { CollectionSection } from "@/components/sections/collection-section";
+import { PricingSection } from "@/components/sections/pricing-section";
+import { StatsSection } from "@/components/sections/stats-section";
+import { ReserveSection } from "@/components/sections/reserve-section";
+import { NotIncludedSection } from "@/components/sections/not-included-section";
+import { WhoSection } from "@/components/sections/who-section";
+import { HostSection } from "@/components/sections/host-section";
 import { EditorialSection } from "@/components/sections/editorial-section";
 import { TestimonialsSection } from "@/components/sections/testimonials-section";
 import { FooterSection } from "@/components/sections/footer-section";
