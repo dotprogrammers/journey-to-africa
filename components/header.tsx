@@ -60,64 +60,57 @@ export function Header() {
                     >
                       JOURNEY TO AFRICA
                     </Link>
+        <nav className="hidden items-center gap-8 md:flex">
+          <Link
+            href="#experience"
+            className={`text-sm font-medium transition-colors ${isScrolled ? "text-muted-foreground hover:text-foreground" : "text-white/70 hover:text-white"}`}
+          >
+            Experience
+          </Link>
+          <Link
+            href="#legacy"
+            className={`text-sm font-medium transition-colors ${isScrolled ? "text-muted-foreground hover:text-foreground" : "text-white/70 hover:text-white"}`}
+          >
+            Legacy
+          </Link>
+          <Link
+            href="#gallery"
+            className={`text-sm font-medium transition-colors ${isScrolled ? "text-muted-foreground hover:text-foreground" : "text-white/70 hover:text-white"}`}
+          >
+            Gallery
+          </Link>
+          <Link
+            href="#reserve"
+            className={`text-sm font-medium transition-colors ${isScrolled ? "text-muted-foreground hover:text-foreground" : "text-white/70 hover:text-white"}`}
+          >
+            Reserve
+          </Link>
+        </nav>
         <div className="hidden items-center gap-6 md:flex">
           <Link
-                    <nav className="hidden items-center gap-8 md:flex">
-                      <Link
-                        href="#experience"
-                        className={`text-sm font-medium transition-colors ${isScrolled ? "text-muted-foreground hover:text-foreground" : "text-white/70 hover:text-white"}`}
-                      >
-                        Experience
-                      </Link>
-                      <Link
-                        href="#legacy"
-                        className={`text-sm font-medium transition-colors ${isScrolled ? "text-muted-foreground hover:text-foreground" : "text-white/70 hover:text-white"}`}
-                      >
-                        Legacy
-                      </Link>
-                      <Link
-                        href="#gallery"
-                        className={`text-sm font-medium transition-colors ${isScrolled ? "text-muted-foreground hover:text-foreground" : "text-white/70 hover:text-white"}`}
-                      >
-                        Gallery
-                      </Link>
-                      <Link
-                        href="#reserve"
-                        className={`text-sm font-medium transition-colors ${isScrolled ? "text-muted-foreground hover:text-foreground" : "text-white/70 hover:text-white"}`}
-                      >
-                        Reserve
-                      </Link>
-                    </nav>
-            >
-              Products
-                    <div className="hidden items-center gap-6 md:flex">
-                      <Link
-                        href="#reserve"
-                        className={`px-4 py-2 text-sm font-semibold transition-all rounded-full ${isScrolled ? "bg-foreground text-background hover:opacity-80" : "bg-white text-foreground hover:bg-white/90"}`}
-                      >
-                        Apply Now
-                      </Link>
-                    </div>
-            <Link
-              href="#gallery"
-              className="text-lg text-foreground"
-                  {/* Mobile Menu */}
-                  {isMenuOpen && (
-                    <div className="border-t border-border bg-background px-6 py-8 md:hidden rounded-b-2xl">
-                      <nav className="flex flex-col gap-6">
-                        <Link
-                          href="#experience"
-                          className="text-lg text-foreground font-medium"
-                          onClick={() => setIsMenuOpen(false)}
-                        >
-                          Experience
-                        </Link>
-                        <Link
-                          href="#legacy"
-                          className="text-lg text-foreground font-medium"
-                          onClick={() => setIsMenuOpen(false)}
-                        >
-                          Legacy
+            href="#reserve"
+            className={`px-4 py-2 text-sm font-semibold transition-all rounded-full ${isScrolled ? "bg-foreground text-background hover:opacity-80" : "bg-white text-foreground hover:bg-white/90"}`}
+          >
+            Apply Now
+          </Link>
+        </div>
+        {/* Mobile Menu */}
+        {isMenuOpen && (
+          <div className="border-t border-border bg-background px-6 py-8 md:hidden rounded-b-2xl">
+            <nav className="flex flex-col gap-6">
+              <Link
+                href="#experience"
+                className="text-lg text-foreground font-medium"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Experience
+              </Link>
+              <Link
+                href="#legacy"
+                className="text-lg text-foreground font-medium"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Legacy
                         </Link>
                         <Link
                           href="#gallery"
