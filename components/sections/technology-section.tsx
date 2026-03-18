@@ -210,11 +210,3 @@ export function TechnologySection() {
       </section>
     );
 }
-        {/* Text Content */}
-        <div className="relative z-10 mx-auto max-w-4xl">
-          <ScrollRevealText text={descriptionText} />
-        </div>
-      </div>
-    </section>
-  );
-}

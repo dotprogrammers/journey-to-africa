@@ -111,28 +111,28 @@ export function Header() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Legacy
-                        </Link>
-                        <Link
-                          href="#gallery"
-                          className="text-lg text-foreground font-medium"
-                          onClick={() => setIsMenuOpen(false)}
-                        >
-                          Gallery
-                        </Link>
-                        <Link
-                          href="#reserve"
-                          className="text-lg text-foreground font-medium"
-                          onClick={() => setIsMenuOpen(false)}
-                        >
-                          Reserve
-                        </Link>
-                        <Link
-                          href="#reserve"
-                          className="mt-4 bg-foreground px-5 py-3 text-center text-sm font-semibold text-background rounded-full"
-                          onClick={() => setIsMenuOpen(false)}
-                        >
-                          Apply Now
-                        </Link>
-                      </nav>
-                    </div>
-                  </div>
+              </Link>
+              <Link
+                href="#gallery"
+                className="text-lg text-foreground font-medium"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Gallery
+              </Link>
+              <Link
+                href="#reserve"
+                className="text-lg text-foreground font-medium"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Reserve
+              </Link>
+              <Link
+                href="#reserve"
+                className="mt-4 bg-foreground px-5 py-3 text-center text-sm font-semibold text-background rounded-full"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Apply Now
+              </Link>
+            </nav>
+          </div>
+        )}
