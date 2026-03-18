@@ -107,3 +107,6 @@ export function Header() {
             </nav>
           </div>
         )}
+        {/* ...existing code... */}
+      </div>
+    </header>
