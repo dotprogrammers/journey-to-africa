@@ -199,7 +199,17 @@ export function TechnologySection() {
               }}
             >
               {sideImages.filter(img => img.position === "right").map((img, idx) => (
-                </div>
+                // ...render right side images here...
+              ))}
+            </div>
+            {/* Text Content */}
+            <div className="relative z-10 mx-auto max-w-4xl">
+              <ScrollRevealText text={descriptionText} />
+            </div>
+        </div>
+      </section>
+    );
+}
         {/* Text Content */}
         <div className="relative z-10 mx-auto max-w-4xl">
           <ScrollRevealText text={descriptionText} />
