@@ -83,7 +83,7 @@ export function PhilosophySection() {
                 }}
               >
                 <Image
-                  src="/images/product-backpack.png"
+                  src="https://images.pexels.com/photos/1294731/pexels-photo-1294731.jpeg?auto=compress&cs=tinysrgb&w=1000"
                   alt="V1 Expedition Backpack in alpine setting"
                   fill
                   className="object-cover"
@@ -106,7 +106,7 @@ export function PhilosophySection() {
                 }}
               >
                 <Image
-                  src="/images/02cdc426-dff4-4dff-b131-1b134c3699b5.png"
+                  src="https://images.pexels.com/photos/1183986/pexels-photo-1183986.jpeg?auto=compress&cs=tinysrgb&w=1000"
                   alt="V1 Thermal mug in forest setting"
                   fill
                   className="object-cover"
