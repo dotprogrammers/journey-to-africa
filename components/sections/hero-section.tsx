@@ -89,7 +89,7 @@ export function HeroSection() {
             {/* Main Hero Title and Supporting Lines */}
             <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-4 md:px-12 lg:px-20">
               <p className="text-base md:text-lg font-semibold text-white mb-2 text-center">Juneteenth Legacy & Investment Experience</p>
-              <h1 className="text-[8vw] md:text-[5vw] lg:text-[4vw] font-bold leading-tight tracking-tighter text-white text-center mb-4">
+              <h1 className="text-[clamp(2.5rem,7vw,5rem)] font-bold leading-tight tracking-tighter text-white text-center mb-4">
                 JOURNEY TO AFRICA
               </h1>
               <h2 className="text-lg md:text-2xl lg:text-3xl font-medium text-white text-center mb-2">Return to Ghana with purpose.</h2>
@@ -154,7 +154,7 @@ export function HeroSection() {
                 className="absolute inset-0 flex items-end overflow-hidden"
                 style={{ opacity: textOpacity }}
               >
-                <h1 className="w-full text-[22vw] font-medium leading-[0.8] tracking-tighter text-white">
+                <h1 className="w-full text-[clamp(2.5rem,12vw,8rem)] font-medium leading-[0.8] tracking-tighter text-white">
                   {word.split("").map((letter, index) => (
                     <span
                       key={index}

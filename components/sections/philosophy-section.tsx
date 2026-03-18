@@ -55,12 +55,27 @@ export function PhilosophySection() {
   }, [updateTransforms]);
 
   return (
-    <section id="intro" className="bg-background">
-      {/* Short Intro / First Generation Style Section */}
-      <div className="px-6 py-20 md:px-12 md:py-28 lg:px-20 lg:py-36 lg:pb-14">
-        <div className="text-center">
-          <p className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Flagship Experience</p>
-          <p className="mt-8 leading-relaxed text-foreground text-2xl md:text-3xl lg:text-4xl text-center font-medium">
+    <section id="intro" className="relative bg-background overflow-hidden">
+      {/* Premium Visual + Main Theme */}
+      <div className="absolute inset-0 -z-10 opacity-60 blur-sm pointer-events-none select-none transition-all duration-700">
+        <Image
+          src="https://images.pexels.com/photos/167964/pexels-photo-167964.jpeg?auto=compress&fit=crop&w=1200&q=80"
+          alt="Ghana landscape"
+          fill
+          className="object-cover object-center w-full h-full"
+          priority
+        />
+      </div>
+      <div className="relative px-6 py-20 md:px-12 md:py-28 lg:px-20 lg:py-36 lg:pb-14 flex flex-col items-center justify-center">
+        <div className="max-w-3xl text-center">
+          <p className="text-xs uppercase tracking-widest text-muted-foreground font-semibold mb-4 animate-fade-in-down">Flagship Experience</p>
+          <h2
+            className="mt-2 text-3xl md:text-4xl lg:text-5xl font-extrabold text-foreground drop-shadow-lg animate-fade-in-up"
+            style={{ opacity: titleOpacity, transition: 'opacity 0.5s' }}
+          >
+            More Than a Journey—A Homecoming
+          </h2>
+          <p className="mt-8 leading-relaxed text-foreground text-lg md:text-xl lg:text-2xl font-medium animate-fade-in-up delay-150">
             Journey to Africa is a premium diaspora experience designed for those who want more than tourism. It brings together historical remembrance, spiritual reflection, cultural immersion, and structured exposure to business and investment pathways in Ghana.
           </p>
         </div>

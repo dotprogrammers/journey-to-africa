@@ -60,26 +60,30 @@ export function CollectionSection() {
 			</div>
 			<div className="pb-24">
 				<div className="grid grid-cols-1 gap-6 px-6 md:grid-cols-3 md:px-12 lg:px-20">
-					{inclusions.map((item, idx) => (
-						<div key={idx} className="group bg-white rounded-2xl shadow-md overflow-hidden">
-							<div className="relative aspect-[2/3]">
-								<FadeImage
-									src={item.image || "/placeholder.svg"}
-									alt={item.title}
-									fill
-									className="object-cover group-hover:scale-105"
-								/>
+						{inclusions.map((item, idx) => (
+							<div
+								key={idx}
+								className="group bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:-translate-y-1"
+								style={{ boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.10)' }}
+							>
+								<div className="relative aspect-[2/3]">
+									<FadeImage
+										src={item.image || "/placeholder.svg"}
+										alt={item.title}
+										fill
+										className="object-cover group-hover:scale-110 transition-transform duration-500"
+									/>
+								</div>
+								<div className="py-6 px-4">
+									<h3 className="text-lg font-extrabold text-foreground mb-2 font-serif tracking-tight group-hover:text-primary transition-colors duration-300">
+										{item.title}
+									</h3>
+									<p className="text-sm text-muted-foreground">
+										{item.description}
+									</p>
+								</div>
 							</div>
-							<div className="py-6 px-4">
-								<h3 className="text-lg font-bold text-foreground mb-2">
-									{item.title}
-								</h3>
-								<p className="text-sm text-muted-foreground">
-									{item.description}
-								</p>
-							</div>
-						</div>
-					))}
+						))}
 				</div>
 			</div>
 		</section>
