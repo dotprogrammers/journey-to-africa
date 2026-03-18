@@ -19,6 +19,12 @@ export default function Home() {
       <TechnologySection />
       <GallerySection />
       <CollectionSection />
+      <PricingSection />
+      <StatsSection />
+      <ReserveSection />
+      <NotIncludedSection />
+      <WhoSection />
+      <HostSection />
       <EditorialSection />
       <TestimonialsSection />
       <FooterSection />

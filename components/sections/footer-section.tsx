@@ -3,23 +3,23 @@
 import Link from "next/link";
 
 const footerLinks = {
-  explore: [
-    { label: "Products", href: "#products" },
-    { label: "Technology", href: "#technology" },
-    { label: "Gallery", href: "#gallery" },
-    { label: "Accessories", href: "#accessories" },
+  experience: [
+    { label: "Overview", href: "#experience" },
+    { label: "Included", href: "#inclusions" },
+    { label: "Pricing", href: "#pricing" },
+    { label: "Reserve", href: "#reserve" },
   ],
   about: [
-    { label: "Our Story", href: "#" },
-    { label: "Team", href: "#" },
-    { label: "Careers", href: "#" },
+    { label: "Our Mission", href: "#" },
+    { label: "Hosts", href: "#host" },
+    { label: "Ghana 2026", href: "#stats" },
     { label: "Contact", href: "#" },
   ],
-  service: [
+  support: [
     { label: "FAQ", href: "#" },
-    { label: "Shipping", href: "#" },
-    { label: "Returns", href: "#" },
-    { label: "Warranty", href: "#" },
+    { label: "Payments", href: "#" },
+    { label: "Terms", href: "#" },
+    { label: "Travel Notes", href: "#" },
   ],
 };
 
@@ -31,19 +31,19 @@ export function FooterSection() {
         <div className="grid grid-cols-2 gap-12 md:grid-cols-4 lg:grid-cols-5">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1 lg:col-span-2">
-            <Link href="/" className="text-lg font-medium text-foreground">
-              EVASION
+            <Link href="/" className="text-lg font-bold text-foreground">
+              JOURNEY TO AFRICA
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
-              Premium smart bottles engineered for adventure. GPS tracking, LED flashlight, and self-heating technology.
+              Journey to Africa is a premium Ghana-based legacy experience reconnecting the diaspora through history, reflection, culture, and future-facing engagement.
             </p>
           </div>
 
-          {/* Explore */}
+          {/* Experience */}
           <div>
-            <h4 className="mb-4 text-sm font-medium text-foreground">Explore</h4>
+            <h4 className="mb-4 text-sm font-medium text-foreground">Experience</h4>
             <ul className="space-y-3">
-              {footerLinks.explore.map((link) => (
+              {footerLinks.experience.map((link) => (
                 <li key={link.label}>
                   <Link
                     href={link.href}
@@ -73,11 +73,11 @@ export function FooterSection() {
             </ul>
           </div>
 
-          {/* Service */}
+          {/* Support */}
           <div>
-            <h4 className="mb-4 text-sm font-medium text-foreground">Service</h4>
+            <h4 className="mb-4 text-sm font-medium text-foreground">Support</h4>
             <ul className="space-y-3">
-              {footerLinks.service.map((link) => (
+              {footerLinks.support.map((link) => (
                 <li key={link.label}>
                   <Link
                     href={link.href}
@@ -96,32 +96,8 @@ export function FooterSection() {
       <div className="border-t border-border px-6 py-6 md:px-12 lg:px-20">
         <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
           <p className="text-xs text-muted-foreground">
-            2026 EVASION. All rights reserved.
+            2026 Journey to Africa. All rights reserved.
           </p>
-
-          
-
-          {/* Social Links */}
-          <div className="flex items-center gap-4">
-            <Link
-              href="#"
-              className="text-xs text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Instagram
-            </Link>
-            <Link
-              href="#"
-              className="text-xs text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Twitter
-            </Link>
-            <Link
-              href="#"
-              className="text-xs text-muted-foreground transition-colors hover:text-foreground"
-            >
-              YouTube
-            </Link>
-          </div>
         </div>
       </div>
     </footer>
