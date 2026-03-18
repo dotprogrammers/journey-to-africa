@@ -31,19 +31,23 @@ export function FeaturedProductsSection() {
       {/* Features Grid */}
       <div className="grid grid-cols-1 gap-6 px-6 pb-20 md:grid-cols-2 md:px-12 lg:px-20">
         {features.map((feature) => (
-          <div key={feature.title} className="group">
+          <div
+            key={feature.title}
+            className="group rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:-translate-y-1 bg-white"
+            style={{ boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.10)' }}
+          >
             {/* Image */}
             <div className="relative aspect-[4/3] overflow-hidden rounded-2xl">
               <FadeImage
                 src={feature.image || "/placeholder.svg"}
                 alt={feature.title}
                 fill
-                className="object-cover group-hover:scale-105"
+                className="object-cover group-hover:scale-110 transition-transform duration-500"
               />
             </div>
             {/* Content */}
             <div className="py-6">
-              <h3 className="text-foreground text-xl font-bold mb-2">
+              <h3 className="text-foreground text-xl font-extrabold mb-2 font-serif tracking-tight group-hover:text-primary transition-colors duration-300">
                 {feature.title}
               </h3>
               <p className="text-sm text-muted-foreground">
