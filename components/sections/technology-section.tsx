@@ -199,39 +199,7 @@ export function TechnologySection() {
               }}
             >
               {sideImages.filter(img => img.position === "right").map((img, idx) => (
-                <div 
-                  key={idx} 
-                  className="relative overflow-hidden will-change-transform"
-                  style={{
-                    flex: img.span,
-                    borderRadius: `${borderRadius}px`,
-                  }}
-                >
-                  <Image
-                    src={img.src || "/placeholder.svg"}
-                    alt={img.alt}
-                    fill
-                    className="object-cover"
-                  />
                 </div>
-              ))}
-            </div>
-
-          </div>
-        </div>
-      </div>
-
-      {/* Scroll space to enable animation */}
-      <div className="h-[200vh]" />
-
-      {/* Description Section with Background Image and Scroll Reveal */}
-      <div 
-        ref={textSectionRef}
-        className="relative overflow-hidden bg-background px-6 py-24 md:px-12 md:py-32 lg:px-20 lg:py-40"
-      >
-        {/* Background Image with Grayscale Filter */}
-        
-
         {/* Text Content */}
         <div className="relative z-10 mx-auto max-w-4xl">
           <ScrollRevealText text={descriptionText} />
