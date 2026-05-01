@@ -8,7 +8,25 @@ export function PhilosophySection() {
   const [alpineTranslateX, setAlpineTranslateX] = useState(-100);
   const [forestTranslateX, setForestTranslateX] = useState(100);
   const [titleOpacity, setTitleOpacity] = useState(1);
+  const [contentBlock, setContentBlock] = useState<any>(null);
   const rafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/cms/blocks`, {
+      headers: { 'Accept': 'application/json' }
+    })
+      .then(res => res.json())
+      .then(json => {
+        if (json.data?.philosophy) {
+          setContentBlock(json.data.philosophy[0]);
+        }
+      })
+      .catch(err => console.error("Error fetching content blocks:", err));
+  }, []);
+
+  const displayTitle = contentBlock?.title || "More Than a Journey—A Homecoming";
+  const displaySubtitle = contentBlock?.subtitle || "Flagship Experience";
+  const displayContent = contentBlock?.content || "Journey to Africa is a premium diaspora experience designed for those who want more than tourism. It brings together historical remembrance, spiritual reflection, cultural immersion, and structured exposure to business and investment pathways in Ghana.";
 
   const updateTransforms = useCallback(() => {
     if (!sectionRef.current) return;
@@ -68,15 +86,15 @@ export function PhilosophySection() {
       </div>
       <div className="relative px-6 py-20 md:px-12 md:py-28 lg:px-20 lg:py-36 lg:pb-14 flex flex-col items-center justify-center">
         <div className="max-w-3xl text-center">
-          <p className="text-xs uppercase tracking-widest text-muted-foreground font-semibold mb-4 animate-fade-in-down">Flagship Experience</p>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground font-semibold mb-4 animate-fade-in-down">{displaySubtitle}</p>
           <h2
             className="mt-2 text-3xl md:text-4xl lg:text-5xl font-extrabold text-foreground drop-shadow-lg animate-fade-in-up"
             style={{ opacity: titleOpacity, transition: 'opacity 0.5s' }}
           >
-            More Than a Journey—A Homecoming
+            {displayTitle}
           </h2>
           <p className="mt-8 leading-relaxed text-foreground text-lg md:text-xl lg:text-2xl font-medium animate-fade-in-up delay-150">
-            Journey to Africa is a premium diaspora experience designed for those who want more than tourism. It brings together historical remembrance, spiritual reflection, cultural immersion, and structured exposure to business and investment pathways in Ghana.
+            {displayContent}
           </p>
         </div>
       </div>

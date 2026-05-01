@@ -3,38 +3,67 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
-const word = "JOURNEY TO AFRICA";
-
-const sideImages = [
-  {
-    src: "https://images.pexels.com/photos/1365425/pexels-photo-1365425.jpeg?auto=compress&cs=tinysrgb&w=1000",
-    alt: "Mountain hiking adventure",
-    position: "left",
-    span: 1,
-  },
-  {
-    src: "https://images.pexels.com/photos/1687845/pexels-photo-1687845.jpeg?auto=compress&cs=tinysrgb&w=1000",
-    alt: "Camping under stars",
-    position: "left",
-    span: 1,
-  },
-  {
-    src: "https://images.pexels.com/photos/1271619/pexels-photo-1271619.jpeg?auto=compress&cs=tinysrgb&w=1000",
-    alt: "Forest exploration",
-    position: "right",
-    span: 1,
-  },
-  {
-    src: "https://images.pexels.com/photos/1687093/pexels-photo-1687093.jpeg?auto=compress&cs=tinysrgb&w=1000",
-    alt: "Lake camping view",
-    position: "right",
-    span: 1,
-  },
-];
-
 export function HeroSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [heroData, setHeroData] = useState<any>(null);
+
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/cms/hero`, {
+      headers: {
+        'Accept': 'application/json',
+      }
+    })
+      .then(res => res.json())
+      .then(json => {
+        if (json.data) {
+          setHeroData(json.data);
+        }
+      })
+      .catch(err => console.error("Error fetching hero data:", err));
+  }, []);
+
+  const displaySideImages = heroData?.side_images?.length > 0 
+    ? heroData.side_images.map((img: any) => ({
+        src: img.url,
+        alt: "Hero side image",
+        position: img.position,
+        span: 1
+      }))
+    : [
+        {
+          src: "https://images.pexels.com/photos/1365425/pexels-photo-1365425.jpeg?auto=compress&cs=tinysrgb&w=1000",
+          alt: "Mountain hiking adventure",
+          position: "left",
+          span: 1,
+        },
+        {
+          src: "https://images.pexels.com/photos/1687845/pexels-photo-1687845.jpeg?auto=compress&cs=tinysrgb&w=1000",
+          alt: "Camping under stars",
+          position: "left",
+          span: 1,
+        },
+        {
+          src: "https://images.pexels.com/photos/1271619/pexels-photo-1271619.jpeg?auto=compress&cs=tinysrgb&w=1000",
+          alt: "Forest exploration",
+          position: "right",
+          span: 1,
+        },
+        {
+          src: "https://images.pexels.com/photos/1687093/pexels-photo-1687093.jpeg?auto=compress&cs=tinysrgb&w=1000",
+          alt: "Lake camping view",
+          position: "right",
+          span: 1,
+        },
+      ];
+
+  const mainTitle = heroData?.title || "JOURNEY TO AFRICA";
+  const subtitle = heroData?.subtitle || "Return to Ghana with purpose.";
+  const tagline = heroData?.tagline || "Juneteenth Legacy & Investment Experience";
+  const description = heroData?.description || "A 10-day curated diaspora journey through Ghana centered on history, reflection, culture, and meaningful connection to Africa’s future.";
+  const primaryBtn = heroData?.buttons?.primary || { text: "Reserve Your Place", link: "#reserve" };
+  const secondaryBtn = heroData?.buttons?.secondary || { text: "View Experience", link: "#experience" };
+  const mainImage = heroData?.main_image || "https://images.pexels.com/photos/1061640/pexels-photo-1061640.jpeg?auto=compress&cs=tinysrgb&w=2000";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -88,20 +117,19 @@ export function HeroSection() {
             {/* Responsive columns and hero image retained for visual effect */}
             {/* Main Hero Title and Supporting Lines */}
             <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-4 md:px-12 lg:px-20">
-              <p className="text-base md:text-lg font-semibold text-white mb-2 text-center">Juneteenth Legacy & Investment Experience</p>
+              <p className="text-base md:text-lg font-semibold text-white mb-2 text-center">{tagline}</p>
               <h1 className="text-[clamp(2.5rem,7vw,5rem)] font-bold leading-tight tracking-tighter text-white text-center mb-4">
-                JOURNEY TO AFRICA
+                {mainTitle}
               </h1>
-              <h2 className="text-lg md:text-2xl lg:text-3xl font-medium text-white text-center mb-2">Return to Ghana with purpose.</h2>
+              <h2 className="text-lg md:text-2xl lg:text-3xl font-medium text-white text-center mb-2">{subtitle}</h2>
               <p className="max-w-xl mx-auto text-sm md:text-base lg:text-lg text-white/80 text-center mb-6">
-                A 10-day curated diaspora journey through Ghana centered on history, reflection, culture, and meaningful connection to Africa’s future.
+                {description}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center mt-2">
-                <a href="#reserve" className="px-6 py-3 rounded-full bg-foreground text-background font-semibold text-base md:text-lg shadow-md hover:opacity-90 transition">Reserve Your Place</a>
-                <a href="#experience" className="px-6 py-3 rounded-full bg-white text-foreground font-semibold text-base md:text-lg shadow-md hover:bg-white/90 transition">View Experience</a>
+                <a href={primaryBtn.link} className="px-6 py-3 rounded-full bg-foreground text-background font-semibold text-base md:text-lg shadow-md hover:opacity-90 transition">{primaryBtn.text}</a>
+                <a href={secondaryBtn.link} className="px-6 py-3 rounded-full bg-white text-foreground font-semibold text-base md:text-lg shadow-md hover:bg-white/90 transition">{secondaryBtn.text}</a>
               </div>
             </div>
-            {/* ...existing image grid and animation code... */}
             {/* Left Column */}
             <div 
               className="flex flex-col will-change-transform"
@@ -112,7 +140,7 @@ export function HeroSection() {
                 opacity: sideOpacity,
               }}
             >
-              {sideImages.filter(img => img.position === "left").map((img, idx) => (
+              {displaySideImages.filter((img: any) => img.position === "left").map((img: any, idx: number) => (
                 <div 
                   key={idx} 
                   className="relative overflow-hidden will-change-transform"
@@ -142,8 +170,8 @@ export function HeroSection() {
               }}
             >
               <Image
-                src="https://images.pexels.com/photos/1061640/pexels-photo-1061640.jpeg?auto=compress&cs=tinysrgb&w=2000"
-                alt="Mountain landscape with camping tent at sunset"
+                src={mainImage}
+                alt="Main hero background"
                 fill
                 className="object-cover"
                 priority
@@ -155,7 +183,7 @@ export function HeroSection() {
                 style={{ opacity: textOpacity }}
               >
                 <h1 className="w-full text-[clamp(2.5rem,12vw,8rem)] font-medium leading-[0.8] tracking-tighter text-white">
-                  {word.split("").map((letter, index) => (
+                  {mainTitle.split("").map((letter: string, index: number) => (
                     <span
                       key={index}
                       className="inline-block animate-[slideUp_0.8s_ease-out_forwards] opacity-0"
@@ -182,7 +210,7 @@ export function HeroSection() {
                 opacity: sideOpacity,
               }}
             >
-              {sideImages.filter(img => img.position === "right").map((img, idx) => (
+              {displaySideImages.filter((img: any) => img.position === "right").map((img: any, idx: number) => (
                 <div 
                   key={idx} 
                   className="relative overflow-hidden will-change-transform"
