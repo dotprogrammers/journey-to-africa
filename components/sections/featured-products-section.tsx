@@ -1,21 +1,38 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { FadeImage } from "@/components/fade-image";
 
-const features = [
-  {
-    title: "Legacy",
-    description: "Cape Coast, Elmina & Assin Manso",
-    image: "https://images.pexels.com/photos/1271619/pexels-photo-1271619.jpeg?auto=compress&cs=tinysrgb&w=800",
-  },
-  {
-    title: "Opportunity",
-    description: "Networking, Dialogue & Future Pathways",
-    image: "https://images.pexels.com/photos/917510/pexels-photo-917510.jpeg?auto=compress&cs=tinysrgb&w=800",
-  },
-];
-
 export function FeaturedProductsSection() {
+  const [features, setFeatures] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/cms/features`, {
+      headers: {
+        'Accept': 'application/json',
+      }
+    })
+      .then(res => res.json())
+      .then(json => {
+        if (json.data && json.data.pillars) {
+          setFeatures(json.data.pillars);
+        }
+      })
+      .catch(err => console.error("Error fetching pillars:", err));
+  }, []);
+
+  const displayFeatures = features.length > 0 ? features : [
+    {
+      title: "Legacy",
+      description: "Cape Coast, Elmina & Assin Manso",
+      image: "https://images.pexels.com/photos/1271619/pexels-photo-1271619.jpeg?auto=compress&cs=tinysrgb&w=800",
+    },
+    {
+      title: "Opportunity",
+      description: "Networking, Dialogue & Future Pathways",
+      image: "https://images.pexels.com/photos/917510/pexels-photo-917510.jpeg?auto=compress&cs=tinysrgb&w=800",
+    },
+  ];
   return (
     <section id="pillars" className="bg-background">
       {/* Section Title */}
@@ -30,7 +47,7 @@ export function FeaturedProductsSection() {
 
       {/* Features Grid */}
       <div className="grid grid-cols-1 gap-6 px-6 pb-20 md:grid-cols-2 md:px-12 lg:px-20">
-        {features.map((feature) => (
+        {displayFeatures.map((feature) => (
           <div
             key={feature.title}
             className="group rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:-translate-y-1 bg-white"
@@ -39,14 +56,14 @@ export function FeaturedProductsSection() {
             {/* Image */}
             <div className="relative aspect-[4/3] overflow-hidden rounded-2xl">
               <FadeImage
-                src={feature.image || "/placeholder.svg"}
+                src={feature.image_url || feature.image || "/placeholder.svg"}
                 alt={feature.title}
                 fill
                 className="object-cover group-hover:scale-110 transition-transform duration-500"
               />
             </div>
             {/* Content */}
-            <div className="py-6">
+            <div className="py-6 px-6">
               <h3 className="text-foreground text-xl font-extrabold mb-2 font-serif tracking-tight group-hover:text-primary transition-colors duration-300">
                 {feature.title}
               </h3>
