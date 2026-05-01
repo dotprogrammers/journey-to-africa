@@ -87,11 +87,23 @@ const sideImages = [
 
 export function TechnologySection() {
   const sectionRef = useRef<HTMLElement>(null);
-  const textSectionRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
-  const [textProgress, setTextProgress] = useState(0);
+  const [features, setFeatures] = useState<any[]>([]);
   
-  const descriptionText = "Experience outdoor gear reimagined with cutting-edge technology. Alpine & Forest accessories combine ultra-lightweight materials, intelligent temperature control, and weather-resistant engineering to elevate every adventure. From mountain peaks to forest trails, your gear adapts to the conditions.";
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/cms/features`, {
+      headers: {
+        'Accept': 'application/json',
+      }
+    })
+      .then(res => res.json())
+      .then(json => {
+        if (json.data && json.data.experience) {
+          setFeatures(json.data.experience);
+        }
+      })
+      .catch(err => console.error("Error fetching feature cards:", err));
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -111,6 +123,39 @@ export function TechnologySection() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const displayFeatures = features.length > 0 ? features : [
+    {
+      title: "History",
+      subtitle: "Cape Coast & Elmina Experience",
+      description: "Walk through the historic sites that anchor the journey in truth, memory, and global Black history."
+    },
+    {
+      title: "Reflection",
+      subtitle: "Assin Manso Ceremony",
+      description: "A powerful moment of remembrance, reconnection, and personal reflection."
+    },
+    {
+      title: "Culture",
+      subtitle: "Juneteenth in Ghana",
+      description: "Celebrate freedom, heritage, and contemporary African identity in community."
+    },
+    {
+      title: "Connection",
+      subtitle: "Business Networking Event",
+      description: "Meet founders, professionals, and ecosystem builders shaping Ghana’s future."
+    },
+    {
+      title: "Spirituality",
+      subtitle: "Mosque & Dialogue Visit",
+      description: "Engage faith, culture, and African spiritual life in a grounded and respectful setting."
+    },
+    {
+      title: "Community",
+      subtitle: "Welcome & Farewell Legacy Dinners",
+      description: "Begin and end the experience in fellowship, conversation, and intentional connection."
+    }
+  ];
+
   return (
     <section id="experience" className="bg-background">
       {/* Section Label */}
@@ -121,44 +166,17 @@ export function TechnologySection() {
         </h2>
       </div>
 
-      {/* Six Feature/Benefit Cards */}
+      {/* Dynamic Feature/Benefit Cards */}
       <div className="grid grid-cols-1 gap-6 px-6 pb-20 md:grid-cols-2 lg:grid-cols-3 md:px-12 lg:px-20">
-        {/* Feature 1 */}
-        <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-start">
-          <span className="text-lg font-bold text-foreground mb-2">History</span>
-          <span className="text-sm font-medium text-muted-foreground mb-1">Cape Coast & Elmina Experience</span>
-          <p className="text-sm text-muted-foreground">Walk through the historic sites that anchor the journey in truth, memory, and global Black history.</p>
-        </div>
-        {/* Feature 2 */}
-        <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-start">
-          <span className="text-lg font-bold text-foreground mb-2">Reflection</span>
-          <span className="text-sm font-medium text-muted-foreground mb-1">Assin Manso Ceremony</span>
-          <p className="text-sm text-muted-foreground">A powerful moment of remembrance, reconnection, and personal reflection.</p>
-        </div>
-        {/* Feature 3 */}
-        <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-start">
-          <span className="text-lg font-bold text-foreground mb-2">Culture</span>
-          <span className="text-sm font-medium text-muted-foreground mb-1">Juneteenth in Ghana</span>
-          <p className="text-sm text-muted-foreground">Celebrate freedom, heritage, and contemporary African identity in community.</p>
-        </div>
-        {/* Feature 4 */}
-        <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-start">
-          <span className="text-lg font-bold text-foreground mb-2">Connection</span>
-          <span className="text-sm font-medium text-muted-foreground mb-1">Business Networking Event</span>
-          <p className="text-sm text-muted-foreground">Meet founders, professionals, and ecosystem builders shaping Ghana’s future.</p>
-        </div>
-        {/* Feature 5 */}
-        <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-start">
-          <span className="text-lg font-bold text-foreground mb-2">Spirituality</span>
-          <span className="text-sm font-medium text-muted-foreground mb-1">Mosque & Dialogue Visit</span>
-          <p className="text-sm text-muted-foreground">Engage faith, culture, and African spiritual life in a grounded and respectful setting.</p>
-        </div>
-        {/* Feature 6 */}
-        <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-start">
-          <span className="text-lg font-bold text-foreground mb-2">Community</span>
-          <span className="text-sm font-medium text-muted-foreground mb-1">Welcome & Farewell Legacy Dinners</span>
-          <p className="text-sm text-muted-foreground">Begin and end the experience in fellowship, conversation, and intentional connection.</p>
-        </div>
+        {displayFeatures.map((feature, index) => (
+          <div key={index} className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-start h-full">
+            <span className="text-lg font-bold text-foreground mb-2">{feature.title}</span>
+            {feature.subtitle && (
+              <span className="text-sm font-medium text-muted-foreground mb-1">{feature.subtitle}</span>
+            )}
+            <p className="text-sm text-muted-foreground">{feature.description}</p>
+          </div>
+        ))}
       </div>
     </section>
   );
