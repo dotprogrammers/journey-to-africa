@@ -37,6 +37,7 @@ import {
   Copy,
 } from "lucide-react";
 import { format } from "date-fns";
+import { SmartImage } from "@/components/smart-image";
 
 interface MediaFile {
   id: string;
@@ -274,10 +275,11 @@ export default function MediaPage() {
               {/* Preview */}
               <div className="aspect-square bg-muted flex items-center justify-center relative overflow-hidden">
                 {file.fileType === "image" ? (
-                  <img
+                  <SmartImage
                     src={file.filePath}
                     alt={file.altText || file.name}
                     className="size-full object-cover"
+                    fill
                   />
                 ) : (
                   <div className="flex flex-col items-center gap-2 text-muted-foreground">
@@ -351,12 +353,13 @@ export default function MediaPage() {
           {editFile && (
             <div className="space-y-4">
               {/* Preview */}
-              <div className="aspect-video bg-muted rounded-lg flex items-center justify-center overflow-hidden">
+              <div className="relative aspect-video bg-muted rounded-lg flex items-center justify-center overflow-hidden">
                 {editFile.fileType === "image" ? (
-                  <img
+                  <SmartImage
                     src={editFile.filePath}
                     alt={editFile.altText || editFile.name}
                     className="size-full object-cover"
+                    fill
                   />
                 ) : (
                   <div className="flex flex-col items-center gap-2 text-muted-foreground">

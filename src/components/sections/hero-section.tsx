@@ -1,7 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { getFallbackImage } from "@/lib/utils";
+import { SmartImage } from "@/components/smart-image";
 
 export function HeroSection() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -65,7 +66,7 @@ export function HeroSection() {
   const description = heroData?.description || "A 10-day curated diaspora journey through Ghana centered on history, reflection, culture, and meaningful connection to Africa’s future.";
   const primaryBtn = heroData?.buttons?.primary || { text: "Reserve Your Place", link: "#reserve" };
   const secondaryBtn = heroData?.buttons?.secondary || { text: "View Experience", link: "#experience" };
-  const mainImage = heroData?.main_image || heroData?.backgroundImage || "https://images.pexels.com/photos/1061640/pexels-photo-1061640.jpeg?auto=compress&cs=tinysrgb&w=2000";
+  const mainImage = getFallbackImage(heroData?.main_image || heroData?.backgroundImage, 'hero');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -154,8 +155,9 @@ export function HeroSection() {
                     borderRadius: `${borderRadius}px`,
                   }}
                 >
-                  <Image
-                    src={img.src || "/placeholder.svg"}
+                  <SmartImage
+                    src={img.src}
+                    fallbackType="gallery"
                     alt={img.alt}
                     fill
                     className="object-cover"
@@ -174,8 +176,9 @@ export function HeroSection() {
                 borderRadius: `${borderRadius}px`,
               }}
             >
-              <Image
+              <SmartImage
                 src={mainImage}
+                fallbackType="hero"
                 alt="Main hero background"
                 fill
                 className="object-cover transition-transform duration-700 hover:scale-105"
@@ -232,8 +235,9 @@ export function HeroSection() {
                     borderRadius: `${borderRadius}px`,
                   }}
                 >
-                  <Image
-                    src={img.src || "/placeholder.svg"}
+                  <SmartImage
+                    src={img.src}
+                    fallbackType="gallery"
                     alt={img.alt}
                     fill
                     className="object-cover"

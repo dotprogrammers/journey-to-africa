@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
+import { getFallbackImage } from "@/lib/utils";
+import { SmartImage } from "@/components/smart-image";
 
 export function TestimonialsSection() {
   const [contentBlock, setContentBlock] = useState<any>(null);
@@ -20,7 +21,7 @@ export function TestimonialsSection() {
   }, []);
 
   const displayContent = contentBlock?.content || "Alpine & Forest accessories combine aerospace-grade materials with cutting-edge technology — designed for explorers who refuse to compromise on quality or performance in the wild.";
-  const displayImage = contentBlock?.items?.[0]?.image || "https://images.pexels.com/photos/1366909/pexels-photo-1366909.jpeg?auto=compress&cs=tinysrgb&w=2000";
+  const displayImage = getFallbackImage(contentBlock?.items?.[0]?.image, 'section');
 
   return (
     <section id="about" className="bg-background">
@@ -33,8 +34,9 @@ export function TestimonialsSection() {
 
       {/* About Image */}
       <div className="relative aspect-[16/9] w-full">
-        <Image
+        <SmartImage
           src={displayImage}
+          fallbackType="section"
           alt="Testimonial background"
           fill
           className="object-cover"

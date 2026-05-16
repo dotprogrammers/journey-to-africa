@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { FadeImage } from "@/components/fade-image";
+import { getFallbackImage } from "@/lib/utils";
 
 export function CollectionSection() {
 	const [inclusions, setInclusions] = useState<any[]>([]);
@@ -99,7 +100,7 @@ export function CollectionSection() {
 							>
 								<div className="relative aspect-[2/3]">
 									<FadeImage
-										src={item.image_url || item.image || "/placeholder.svg"}
+										src={getFallbackImage(item.image_url || item.image, 'section')}
 										alt={item.title}
 										fill
 										className="object-cover group-hover:scale-110 transition-transform duration-500"

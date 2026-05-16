@@ -1,7 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useRef, useState, useCallback } from "react";
+import { getFallbackImage } from "@/lib/utils";
+import { SmartImage } from "@/components/smart-image";
 
 export function PhilosophySection() {
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -76,8 +77,9 @@ export function PhilosophySection() {
     <section id="intro" className="relative bg-background overflow-hidden">
       {/* Premium Visual + Main Theme */}
       <div className="absolute inset-0 -z-10 opacity-60 blur-sm pointer-events-none select-none transition-all duration-700">
-        <Image
-          src={contentBlock?.background_image || "https://images.pexels.com/photos/167964/pexels-photo-167964.jpeg?auto=compress&fit=crop&w=1200&q=80"}
+        <SmartImage
+          src={contentBlock?.background_image}
+          fallbackType="section"
           alt="Section background"
           fill
           className="object-cover object-center w-full h-full"

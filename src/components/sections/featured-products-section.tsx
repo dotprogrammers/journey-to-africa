@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { FadeImage } from "@/components/fade-image";
+import { getFallbackImage } from "@/lib/utils";
 
 export function FeaturedProductsSection() {
   const [features, setFeatures] = useState<any[]>([]);
@@ -71,7 +72,7 @@ export function FeaturedProductsSection() {
             {/* Image */}
             <div className="relative aspect-[4/3] overflow-hidden rounded-2xl">
               <FadeImage
-                src={feature.image_url || feature.image || "/placeholder.svg"}
+                src={getFallbackImage(feature.image_url || feature.image, 'section')}
                 alt={feature.title}
                 fill
                 className="object-cover group-hover:scale-110 transition-transform duration-500"

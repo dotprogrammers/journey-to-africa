@@ -1,7 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { getFallbackImage } from "@/lib/utils";
+import { SmartImage } from "@/components/smart-image";
 
 function ScrollRevealText({ text }: { text: string }) {
   const containerRef = useRef<HTMLParagraphElement>(null);
@@ -185,16 +186,15 @@ export function TechnologySection() {
       <div className="grid grid-cols-1 gap-6 px-6 pb-20 md:grid-cols-2 lg:grid-cols-3 md:px-12 lg:px-20">
         {displayFeatures.map((feature, index) => (
           <div key={index} className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-start h-full">
-            {feature.image && (
-              <div className="relative w-full aspect-video mb-4 overflow-hidden rounded-xl">
-                <Image
-                  src={feature.image}
-                  alt={feature.image_alt || feature.title}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            )}
+            <div className="relative w-full aspect-video mb-4 overflow-hidden rounded-xl">
+              <SmartImage
+                src={feature.image}
+                fallbackType="section"
+                alt={feature.image_alt || feature.title}
+                fill
+                className="object-cover"
+              />
+            </div>
             <span className="text-lg font-bold text-foreground mb-2">{feature.title}</span>
             {feature.subtitle && (
               <span className="text-sm font-medium text-muted-foreground mb-1">{feature.subtitle}</span>

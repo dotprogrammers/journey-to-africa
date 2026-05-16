@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
+import { getFallbackImage } from "@/lib/utils";
+import { SmartImage } from "@/components/smart-image";
 
 export function EditorialSection() {
   const [contentBlock, setContentBlock] = useState<any>(null);
@@ -21,14 +22,15 @@ export function EditorialSection() {
 
   const displayTitle = contentBlock?.title || "Where Heritage Meets Future.";
   const displayContent = contentBlock?.content || "This is not a standard group trip. Journey to Africa is a carefully curated return experience for members of the diaspora who want to engage Ghana with depth and direction. Over ten days, guests move from places of historical significance into spaces of celebration, dialogue, and opportunity—building not only memories, but meaningful pathways for long-term connection with Africa.";
-  const displayImage = contentBlock?.background_image || "https://images.pexels.com/photos/417173/pexels-photo-417173.jpeg?auto=compress&fit=crop&w=1200&q=80";
+  const displayImage = getFallbackImage(contentBlock?.background_image, 'section');
 
   return (
     <section className="relative bg-background py-20 md:py-32 lg:py-40 overflow-hidden">
       {/* Premium Background Image */}
       <div className="absolute inset-0 -z-10 opacity-50 blur-sm pointer-events-none select-none transition-all duration-700">
-        <Image
+        <SmartImage
           src={displayImage}
+          fallbackType="section"
           alt="Ghana celebration"
           fill
           className="object-cover object-center w-full h-full"

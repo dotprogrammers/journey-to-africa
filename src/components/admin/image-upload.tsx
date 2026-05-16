@@ -23,6 +23,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { SmartImage } from "@/components/smart-image";
 
 interface ImageUploadProps {
   value: string;
@@ -115,10 +116,12 @@ export function ImageUpload({ value, onChange, label, description }: ImageUpload
       <div className="flex flex-col gap-4">
         {value ? (
           <div className="relative aspect-video w-full max-w-sm rounded-lg border bg-muted overflow-hidden group">
-            <img 
+            <SmartImage 
               src={value} 
               alt="Uploaded content" 
               className="size-full object-cover"
+              fallbackType="section"
+              fill
             />
             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
               <Button 
@@ -218,10 +221,12 @@ export function ImageUpload({ value, onChange, label, description }: ImageUpload
                           setBrowsing(false);
                         }}
                       >
-                        <img 
+                        <SmartImage 
                           src={file.filePath} 
                           alt={file.name} 
                           className="size-full object-cover"
+                          fallbackType="section"
+                          fill
                         />
                         {value === file.filePath && (
                           <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">

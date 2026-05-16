@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { ImageUpload } from "@/components/admin/image-upload";
+import { SmartImage } from "@/components/smart-image";
 import {
   DndContext,
   closestCenter,
@@ -92,10 +93,12 @@ function SortableItem({ item, index, sectionSlug, onEdit, onRemove }: SortableIt
       >
         <div className="absolute inset-0 z-0">
           {item.image ? (
-            <img
-              src={item.image}
+            <SmartImage
+              src={item.image || ''}
+              fallbackType="section"
               alt={item.imageAlt || ""}
               className="size-full object-cover pointer-events-none"
+              fill
             />
           ) : (
             <div className="size-full flex items-center justify-center bg-muted">
@@ -173,11 +176,13 @@ function SortableItem({ item, index, sectionSlug, onEdit, onRemove }: SortableIt
       </div>
 
       {item.image && (
-        <div className="size-10 rounded-md bg-muted shrink-0 overflow-hidden border shadow-sm">
-          <img
-            src={item.image}
+        <div className="relative size-10 rounded-md bg-muted shrink-0 overflow-hidden border shadow-sm">
+          <SmartImage
+            src={item.image || ''}
+            fallbackType="section"
             alt={item.imageAlt || ""}
             className="size-full object-cover"
+            fill
           />
         </div>
       )}

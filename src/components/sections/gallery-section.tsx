@@ -1,7 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useRef, useState, useCallback } from "react";
+import { getFallbackImage } from "@/lib/utils";
+import { SmartImage } from "@/components/smart-image";
 
 export function GallerySection() {
   const galleryRef = useRef<HTMLDivElement>(null);
@@ -128,8 +129,9 @@ export function GallerySection() {
                 key={index}
                 className="relative aspect-[4/3] overflow-hidden rounded-2xl shadow-md"
               >
-                <Image
-                  src={image.src || "/placeholder.svg"}
+                <SmartImage
+                  src={image.src}
+                  fallbackType="gallery"
                   alt={image.alt}
                   fill
                   className="object-cover"
