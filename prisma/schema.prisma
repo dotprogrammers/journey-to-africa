@@ -1,0 +1,426 @@
+// ============================================================
+// Journey to Africa - MySQL Production Schema
+// ============================================================
+// This is the MySQL-optimized version of the schema.
+// To use in production:
+//   1. Copy this file to prisma/schema.prisma (or reference it)
+//   2. Update .env DATABASE_URL to:
+//      DATABASE_URL="mysql://root:password@localhost:3306/journey_to_africa"
+//   3. Run: npx prisma db push
+//   4. Run: npx prisma generate
+//
+// Type Mapping Reference:
+//   String + @db.VarChar(255)   → Standard strings (names, emails, titles)
+//   String + @db.VarChar(100)   → Medium strings (slugs, labels, references)
+//   String + @db.VarChar(50)    → Enum-like strings (status, role, type)
+//   String + @db.VarChar(20)    → Short enum strings (gender)
+//   String + @db.VarChar(10)    → Short codes (currency codes)
+//   String + @db.VarChar(36)    → CUID foreign keys
+//   String + @db.VarChar(500)   → URLs and file paths
+//   String + @db.Text           → Long text (descriptions, error messages)
+//   String + @db.LongText       → Very long text (HTML bodies, JSON payloads)
+//   Int + @db.Int               → Integer values
+//   Float + @db.Float           → Floating point values (prices, fees)
+//   Boolean                     → Automatically mapped to TINYINT(1) by Prisma
+//   DateTime + @db.DateTime(3)  → Timestamps with millisecond precision
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// USERS & AUTHENTICATION
+// ============================================================
+
+model User {
+  id               String    @id @default(cuid()) @db.VarChar(36)
+  name             String    @db.VarChar(255)
+  email            String    @unique @db.VarChar(255)
+  emailVerifiedAt  DateTime? @db.DateTime(3)
+  password         String    @db.VarChar(255)
+  phone            String?   @db.VarChar(50)
+  country          String?   @db.VarChar(100)
+  city             String?   @db.VarChar(100)
+  avatar           String?   @db.VarChar(500)
+  role             String    @default("user") @db.VarChar(50) // admin, user
+  isActive         Boolean   @default(true) // Maps to TINYINT(1)
+  bookings         Booking[]
+  payments         Payment[]
+  invoices         Invoice[]
+  emailLogs        EmailLog[]
+  activityLogs     ActivityLog[]
+  createdAt        DateTime  @default(now()) @db.DateTime(3)
+  updatedAt        DateTime  @updatedAt @db.DateTime(3)
+
+  @@map("users")
+}
+
+model AdminUser {
+  id             String    @id @default(cuid()) @db.VarChar(36)
+  email          String    @unique @db.VarChar(255)
+  name           String    @db.VarChar(255)
+  hashedPassword String    @db.VarChar(255)
+  role           String    @default("admin") @db.VarChar(50) // admin, editor
+  isActive       Boolean   @default(true) // Maps to TINYINT(1)
+  lastLoginAt    DateTime? @db.DateTime(3)
+  createdAt      DateTime  @default(now()) @db.DateTime(3)
+  updatedAt      DateTime  @updatedAt @db.DateTime(3)
+
+  @@map("admin_users")
+}
+
+// ============================================================
+// CMS / CONTENT MANAGEMENT
+// ============================================================
+
+model SiteSetting {
+  id          String   @id @default(cuid()) @db.VarChar(36)
+  group       String   @default("general") @db.VarChar(50) // general, seo, appearance, contact, social
+  key         String   @unique @db.VarChar(100)
+  value       String   @db.Text
+  type        String   @default("string") @db.VarChar(50) // string, text, integer, boolean, json, file
+  label       String   @db.VarChar(255)
+  description String?  @db.Text
+  sortOrder   Int      @default(0) @db.Int
+  createdAt   DateTime @default(now()) @db.DateTime(3)
+  updatedAt   DateTime @updatedAt @db.DateTime(3)
+
+  @@map("site_settings")
+}
+
+model Section {
+  id               String   @id @default(cuid()) @db.VarChar(36)
+  slug             String   @unique @db.VarChar(100)
+  name             String   @db.VarChar(255)
+  heading          String?  @db.VarChar(255)
+  subheading       String?  @db.VarChar(255)
+  description      String?  @db.Text
+  label            String?  @db.VarChar(100)
+  backgroundImage  String?  @db.VarChar(500)
+  ctaPrimaryText   String?  @db.VarChar(100)
+  ctaPrimaryLink   String?  @db.VarChar(500)
+  ctaSecondaryText String?  @db.VarChar(100)
+  ctaSecondaryLink String?  @db.VarChar(500)
+  disclaimer       String?  @db.Text
+  note             String?  @db.Text
+  isActive         Boolean  @default(true) // Maps to TINYINT(1)
+  sortOrder        Int      @default(0) @db.Int
+  items            SectionItem[]
+  createdAt        DateTime @default(now()) @db.DateTime(3)
+  updatedAt        DateTime @updatedAt @db.DateTime(3)
+
+  @@map("sections")
+}
+
+model SectionItem {
+  id          String   @id @default(cuid()) @db.VarChar(36)
+  sectionId   String   @db.VarChar(36)
+  itemType    String   @db.VarChar(50) // feature, image, tier, stat, host, link_group, pillar
+  title       String?  @db.VarChar(255)
+  subtitle    String?  @db.VarChar(255)
+  description String?  @db.Text
+  image       String?  @db.VarChar(500)
+  imageAlt    String?  @db.VarChar(255)
+  linkText    String?  @db.VarChar(100)
+  linkUrl     String?  @db.VarChar(500)
+  price       Float?   @db.Float
+  priceLabel  String?  @db.VarChar(100)
+  sortOrder   Int      @default(0) @db.Int
+  isActive    Boolean  @default(true) // Maps to TINYINT(1)
+  section     Section  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now()) @db.DateTime(3)
+  updatedAt   DateTime @updatedAt @db.DateTime(3)
+
+  @@index([sectionId])
+  @@index([itemType])
+  @@map("section_items")
+}
+
+model NavigationLink {
+  id        String            @id @default(cuid()) @db.VarChar(36)
+  location  String            @db.VarChar(50) // header, footer
+  groupName String?           @db.VarChar(100)
+  label     String            @db.VarChar(255)
+  url       String            @db.VarChar(500)
+  parentId  String?           @db.VarChar(36)
+  sortOrder Int               @default(0) @db.Int
+  isActive  Boolean           @default(true) // Maps to TINYINT(1)
+  parent    NavigationLink?   @relation("NavChildren", fields: [parentId], references: [id])
+  children  NavigationLink[]  @relation("NavChildren")
+  createdAt DateTime          @default(now()) @db.DateTime(3)
+  updatedAt DateTime          @updatedAt @db.DateTime(3)
+
+  @@map("navigation_links")
+}
+
+model MediaFile {
+  id         String   @id @default(cuid()) @db.VarChar(36)
+  name       String   @db.VarChar(255)
+  filePath   String   @db.VarChar(500)
+  fileType   String   @db.VarChar(50)
+  fileSize   Int      @db.Int
+  altText    String?  @db.VarChar(255)
+  collection String?  @db.VarChar(100)
+  createdAt  DateTime @default(now()) @db.DateTime(3)
+  updatedAt  DateTime @updatedAt @db.DateTime(3)
+
+  @@map("media_files")
+}
+
+// ============================================================
+// BOOKING & PRICING
+// ============================================================
+
+model PricingTier {
+  id              String    @id @default(cuid()) @db.VarChar(36)
+  name            String    @db.VarChar(255)
+  subtitle        String?   @db.VarChar(255)
+  price           Float     @db.Float
+  currency        String    @default("USD") @db.VarChar(10)
+  maxCapacity     Int       @default(0) @db.Int
+  currentBookings Int       @default(0) @db.Int
+  isEarlyBird     Boolean   @default(false) // Maps to TINYINT(1)
+  earlyBirdEndsAt DateTime? @db.DateTime(3)
+  isActive        Boolean   @default(true) // Maps to TINYINT(1)
+  sortOrder       Int       @default(0) @db.Int
+  features        String?   @db.LongText // JSON array
+  bookings        Booking[]
+  createdAt       DateTime  @default(now()) @db.DateTime(3)
+  updatedAt       DateTime  @updatedAt @db.DateTime(3)
+
+  @@map("pricing_tiers")
+}
+
+model Booking {
+  id                   String        @id @default(cuid()) @db.VarChar(36)
+  bookingReference     String        @unique @db.VarChar(50)
+  userId               String        @db.VarChar(36)
+  pricingTierId        String        @db.VarChar(36)
+  status               String        @default("pending") @db.VarChar(50) // pending, confirmed, paid, completed, cancelled, refunded
+  numberOfTravelers    Int           @default(1) @db.Int
+  subtotal             Float         @db.Float
+  discountAmount       Float         @default(0) @db.Float
+  totalAmount          Float         @db.Float
+  currency             String        @default("USD") @db.VarChar(10)
+  specialRequests      String?       @db.Text
+  dietaryRequirements  String?       @db.Text
+  emergencyContactName String?       @db.VarChar(255)
+  emergencyContactPhone String?      @db.VarChar(50)
+  passportNumber       String?       @db.VarChar(100)
+  nationality          String?       @db.VarChar(100)
+  confirmedAt          DateTime?     @db.DateTime(3)
+  paidAt               DateTime?     @db.DateTime(3)
+  completedAt          DateTime?     @db.DateTime(3)
+  cancelledAt          DateTime?     @db.DateTime(3)
+  cancellationReason   String?       @db.Text
+  user                 User          @relation(fields: [userId], references: [id])
+  pricingTier          PricingTier   @relation(fields: [pricingTierId], references: [id])
+  travelers            BookingTraveler[]
+  payments             Payment[]
+  invoices             Invoice[]
+  emailLogs            EmailLog[]
+  createdAt            DateTime      @default(now()) @db.DateTime(3)
+  updatedAt            DateTime      @updatedAt @db.DateTime(3)
+
+  @@index([userId])
+  @@index([status])
+  @@map("bookings")
+}
+
+model BookingTraveler {
+  id                  String    @id @default(cuid()) @db.VarChar(36)
+  bookingId           String    @db.VarChar(36)
+  isPrimary           Boolean   @default(false) // Maps to TINYINT(1)
+  firstName           String    @db.VarChar(100)
+  lastName            String    @db.VarChar(100)
+  email               String?   @db.VarChar(255)
+  phone               String?   @db.VarChar(50)
+  dateOfBirth         DateTime? @db.DateTime(3)
+  gender              String?   @db.VarChar(20)
+  passportNumber      String?   @db.VarChar(100)
+  nationality         String?   @db.VarChar(100)
+  dietaryRequirements String?   @db.Text
+  specialNeeds        String?   @db.Text
+  booking             Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  createdAt           DateTime  @default(now()) @db.DateTime(3)
+  updatedAt           DateTime  @updatedAt @db.DateTime(3)
+
+  @@index([bookingId])
+  @@map("booking_travelers")
+}
+
+// ============================================================
+// PAYMENTS
+// ============================================================
+
+model Payment {
+  id                 String    @id @default(cuid()) @db.VarChar(36)
+  bookingId          String    @db.VarChar(36)
+  userId             String    @db.VarChar(36)
+  paystackReference  String?   @unique @db.VarChar(100)
+  paystackAccessCode String?   @db.VarChar(100)
+  stripeSessionId    String?   @unique @db.VarChar(255)
+  stripePaymentIntentId String? @unique @db.VarChar(255)
+  amount             Float     @db.Float
+  currency           String    @default("USD") @db.VarChar(10)
+  status             String    @default("initialized") @db.VarChar(50) // initialized, pending, success, failed, abandoned, refunded
+  paymentMethod      String?   @db.VarChar(50)
+  paidAt             DateTime? @db.DateTime(3)
+  paystackFees       Float?    @db.Float
+  stripeFees         Float?    @db.Float
+  metadata           String?   @db.LongText // JSON
+  gatewayResponse    String?   @db.Text
+  booking            Booking   @relation(fields: [bookingId], references: [id])
+  user               User      @relation(fields: [userId], references: [id])
+  createdAt          DateTime  @default(now()) @db.DateTime(3)
+  updatedAt          DateTime  @updatedAt @db.DateTime(3)
+
+  @@index([bookingId])
+  @@index([status])
+  @@map("payments")
+}
+
+model StripeWebhook {
+  id              String    @id @default(cuid()) @db.VarChar(36)
+  eventType       String    @db.VarChar(100)
+  eventId         String    @unique @db.VarChar(100)
+  payload         String    @db.LongText // JSON
+  isProcessed     Boolean   @default(false)
+  processedAt     DateTime? @db.DateTime(3)
+  processingError String?   @db.Text
+  createdAt       DateTime  @default(now()) @db.DateTime(3)
+  updatedAt       DateTime  @updatedAt @db.DateTime(3)
+
+  @@index([isProcessed])
+  @@map("stripe_webhooks")
+}
+
+// ============================================================
+// INVOICES
+// ============================================================
+
+model Invoice {
+  id             String    @id @default(cuid()) @db.VarChar(36)
+  bookingId      String    @unique @db.VarChar(36)
+  invoiceNumber  String    @unique @db.VarChar(50)
+  userId         String    @db.VarChar(36)
+  subtotal       Float     @db.Float
+  discountAmount Float     @default(0) @db.Float
+  totalAmount    Float     @db.Float
+  currency       String    @default("USD") @db.VarChar(10)
+  lineItems      String    @db.LongText // JSON
+  billingName    String    @db.VarChar(255)
+  billingEmail   String    @db.VarChar(255)
+  billingAddress String?   @db.Text
+  pdfPath        String?   @db.VarChar(500)
+  issuedAt       DateTime? @db.DateTime(3)
+  dueAt          DateTime? @db.DateTime(3)
+  booking        Booking   @relation(fields: [bookingId], references: [id])
+  user           User      @relation(fields: [userId], references: [id])
+  createdAt      DateTime  @default(now()) @db.DateTime(3)
+  updatedAt      DateTime  @updatedAt @db.DateTime(3)
+
+  @@index([userId])
+  @@map("invoices")
+}
+
+// ============================================================
+// EMAIL / NOTIFICATIONS
+// ============================================================
+
+model EmailTemplate {
+  id                 String     @id @default(cuid()) @db.VarChar(36)
+  slug               String     @unique @db.VarChar(100)
+  name               String     @db.VarChar(255)
+  subject            String     @db.VarChar(255)
+  bodyHtml           String     @db.LongText
+  bodyText           String?    @db.Text
+  availableVariables String?    @db.Text // JSON array
+  isActive           Boolean    @default(true) // Maps to TINYINT(1)
+  logs               EmailLog[]
+  createdAt          DateTime   @default(now()) @db.DateTime(3)
+  updatedAt          DateTime   @updatedAt @db.DateTime(3)
+
+  @@map("email_templates")
+}
+
+model EmailLog {
+  id                String         @id @default(cuid()) @db.VarChar(36)
+  userId            String?        @db.VarChar(36)
+  bookingId         String?        @db.VarChar(36)
+  templateId        String?        @db.VarChar(36)
+  recipientEmail    String         @db.VarChar(255)
+  subject           String         @db.VarChar(255)
+  body              String         @db.LongText
+  status            String         @default("queued") @db.VarChar(50) // queued, sent, failed
+  providerMessageId String?        @db.VarChar(255)
+  errorMessage      String?        @db.Text
+  sentAt            DateTime?      @db.DateTime(3)
+  user              User?          @relation(fields: [userId], references: [id])
+  booking           Booking?       @relation(fields: [bookingId], references: [id])
+  template          EmailTemplate? @relation(fields: [templateId], references: [id])
+  createdAt         DateTime       @default(now()) @db.DateTime(3)
+  updatedAt         DateTime       @updatedAt @db.DateTime(3)
+
+  @@index([userId])
+  @@index([bookingId])
+  @@index([status])
+  @@map("email_logs")
+}
+
+// ============================================================
+// SYSTEM / AUDIT
+// ============================================================
+
+model ActivityLog {
+  id          String   @id @default(cuid()) @db.VarChar(36)
+  userId      String?  @db.VarChar(36)
+  action      String   @db.VarChar(100)
+  subjectType String?  @db.VarChar(100)
+  subjectId   String?  @db.VarChar(36)
+  properties  String?  @db.Text // JSON
+  ipAddress   String?  @db.VarChar(45) // IPv4 max 15, IPv6 max 45
+  userAgent   String?  @db.Text
+  user        User?    @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now()) @db.DateTime(3)
+
+  @@index([userId])
+  @@index([action])
+  @@index([subjectType, subjectId])
+  @@map("activity_logs")
+}
+
+model PaystackWebhook {
+  id              String    @id @default(cuid()) @db.VarChar(36)
+  eventType       String    @db.VarChar(100)
+  eventId         String    @unique @db.VarChar(100)
+  payload         String    @db.LongText // JSON
+  isProcessed     Boolean   @default(false) // Maps to TINYINT(1)
+  processedAt     DateTime? @db.DateTime(3)
+  processingError String?   @db.Text
+  createdAt       DateTime  @default(now()) @db.DateTime(3)
+  updatedAt       DateTime  @updatedAt @db.DateTime(3)
+
+  @@index([isProcessed])
+  @@map("paystack_webhooks")
+}
+
+model SystemConfiguration {
+  id          String   @id @default(cuid()) @db.VarChar(36)
+  key         String   @unique @db.VarChar(100)
+  value       String   @db.Text // Encrypted value
+  label       String   @db.VarChar(255)
+  description String?  @db.Text
+  type        String   @default("api_key") @db.VarChar(50) // api_key, config
+  isEncrypted Boolean  @default(true)
+  createdAt   DateTime @default(now()) @db.DateTime(3)
+  updatedAt   DateTime @updatedAt @db.DateTime(3)
+
+  @@map("system_configurations")
+}
