@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/api-auth";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 
 /**
  * GET /api/admin/media - List all media files
@@ -60,19 +61,6 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Generate unique filename
-    const ext = path.extname(file.name) || "";
-    const baseName = path.basename(file.name, ext).replace(/[^a-zA-Z0-9-_]/g, "_");
-    const uniqueName = `${baseName}-${Date.now()}${ext}`;
-
-    // Ensure uploads directory exists
-    const uploadsDir = path.join(process.cwd(), "public", "uploads");
-    await mkdir(uploadsDir, { recursive: true });
-
-    // Write file to disk
-    const filePath = path.join(uploadsDir, uniqueName);
-    await writeFile(filePath, buffer);
-
     // Determine file type
     const mimeType = file.type || "application/octet-stream";
     let fileType = "document";
@@ -80,11 +68,41 @@ export async function POST(request: NextRequest) {
     else if (mimeType.startsWith("video/")) fileType = "video";
     else if (mimeType.startsWith("audio/")) fileType = "audio";
 
+    // Attempt Cloudinary Upload if it's an image
+    let finalPath = "";
+    if (fileType === "image") {
+      try {
+        const cloudinaryResult = await uploadToCloudinary(buffer, file.name, collection || "journey-to-africa") as any;
+        if (cloudinaryResult && cloudinaryResult.secure_url) {
+          finalPath = cloudinaryResult.secure_url;
+        }
+      } catch (cloudinaryError) {
+        console.error("Cloudinary upload failed, falling back to local storage:", cloudinaryError);
+      }
+    }
+
+    // Fallback to local storage if Cloudinary didn't work or it's not an image
+    if (!finalPath) {
+      // Ensure uploads directory exists
+      const uploadsDir = path.join(process.cwd(), "public", "uploads");
+      await mkdir(uploadsDir, { recursive: true });
+
+      // Generate unique filename
+      const ext = path.extname(file.name) || "";
+      const baseName = path.basename(file.name, ext).replace(/[^a-zA-Z0-9-_]/g, "_");
+      const uniqueName = `${baseName}-${Date.now()}${ext}`;
+
+      // Write file to disk
+      const filePath = path.join(uploadsDir, uniqueName);
+      await writeFile(filePath, buffer);
+      finalPath = `/uploads/${uniqueName}`;
+    }
+
     // Create database record
     const mediaFile = await db.mediaFile.create({
       data: {
         name: file.name,
-        filePath: `/uploads/${uniqueName}`,
+        filePath: finalPath,
         fileType,
         fileSize: buffer.length,
         altText: altText || null,

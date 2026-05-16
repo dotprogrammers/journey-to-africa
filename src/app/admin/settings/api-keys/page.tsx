@@ -32,6 +32,9 @@ const PREDEFINED_KEYS = [
   { key: "smtp_user", label: "SMTP Username", description: "Username for mail server" },
   { key: "smtp_pass", label: "SMTP Password", description: "Password for mail server" },
   { key: "email_from", label: "Email From Address", description: "Sender email (e.g. info@yourdomain.com)" },
+  { key: "cloudinary_cloud_name", label: "Cloudinary Cloud Name", description: "Your Cloudinary Cloud Name" },
+  { key: "cloudinary_api_key", label: "Cloudinary API Key", description: "Your Cloudinary API Key" },
+  { key: "cloudinary_api_secret", label: "Cloudinary API Secret", description: "Your Cloudinary API Secret" },
 ];
 
 export default function ApiKeysPage() {

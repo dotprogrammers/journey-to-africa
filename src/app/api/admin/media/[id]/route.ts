@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/api-auth";
 import { unlink } from "fs/promises";
 import path from "path";
+import { deleteFromCloudinary, extractPublicId } from "@/lib/cloudinary";
 
 /**
  * PUT /api/admin/media/[id] - Update media file metadata (alt text, collection)
@@ -78,12 +79,19 @@ export async function DELETE(
       );
     }
 
-    // Delete file from disk
+    // Delete file from disk or Cloudinary
     try {
-      const absolutePath = path.join(process.cwd(), "public", mediaFile.filePath);
-      await unlink(absolutePath);
+      if (mediaFile.filePath.includes("res.cloudinary.com")) {
+        const publicId = extractPublicId(mediaFile.filePath);
+        if (publicId) {
+          await deleteFromCloudinary(publicId);
+        }
+      } else {
+        const absolutePath = path.join(process.cwd(), "public", mediaFile.filePath);
+        await unlink(absolutePath);
+      }
     } catch (fileError) {
-      console.warn("Could not delete file from disk:", fileError);
+      console.warn("Could not delete file from storage:", fileError);
       // Continue with database deletion even if file deletion fails
     }
 
