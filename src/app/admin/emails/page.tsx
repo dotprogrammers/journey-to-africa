@@ -24,7 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { toast } from "sonner";
+import { gooeyToast } from "@/components/admin/gooey-toast";
 import {
   Mail,
   Pencil,
@@ -102,16 +102,16 @@ export default function EmailsPage() {
       });
 
       if (res.ok) {
-        toast.success("Email template updated successfully");
+        gooeyToast.success("Email template updated successfully");
         const data = await res.json();
         setTemplates(templates.map((t) => (t.id === editingTemplate.id ? data.data : t)));
         setEditingTemplate(null);
       } else {
         const data = await res.json();
-        toast.error(data.error || "Failed to update template");
+        gooeyToast.error(data.error || "Failed to update template");
       }
     } catch {
-      toast.error("Failed to update template");
+      gooeyToast.error("Failed to update template");
     } finally {
       setSaving(false);
     }
@@ -176,12 +176,12 @@ export default function EmailsPage() {
             <Button onClick={handleSave} disabled={saving}>
               {saving ? (
                 <>
-                  <Loader2 className="size-4 animate-spin" />
+                  <Loader2 className="mr-2 size-4 animate-spin" />
                   Saving...
                 </>
               ) : (
                 <>
-                  <Save className="size-4" />
+                  <Save className="mr-2 size-4" />
                   Save
                 </>
               )}
