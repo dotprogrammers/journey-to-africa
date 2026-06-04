@@ -15,7 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { toast } from "sonner";
+import { gooeyToast } from "@/components/admin/gooey-toast";
 import { CreditCard, Pencil, Loader2, Users, Check, X } from "lucide-react";
 
 interface PricingTier {
@@ -40,6 +40,7 @@ export default function PricingPage() {
   const [editTier, setEditTier] = useState<PricingTier | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -96,22 +97,23 @@ export default function PricingPage() {
       });
 
       if (res.ok) {
-        toast.success("Pricing tier updated successfully");
+        gooeyToast.success("Pricing tier updated successfully");
         const data = await res.json();
         setTiers(tiers.map((t) => (t.id === editTier.id ? data.data : t)));
         setDialogOpen(false);
       } else {
         const data = await res.json();
-        toast.error(data.error || "Failed to update tier");
+        gooeyToast.error(data.error || "Failed to update tier");
       }
     } catch {
-      toast.error("Failed to update tier");
+      gooeyToast.error("Failed to update tier");
     } finally {
       setSaving(false);
     }
   };
 
   const handleToggleActive = async (tier: PricingTier) => {
+    setTogglingId(tier.id);
     try {
       const res = await fetch(`/api/admin/pricing/${tier.id}`, {
         method: "PUT",
@@ -120,13 +122,15 @@ export default function PricingPage() {
       });
 
       if (res.ok) {
-        toast.success(`Tier ${!tier.isActive ? "activated" : "deactivated"}`);
+        gooeyToast.success(`Tier ${!tier.isActive ? "activated" : "deactivated"}`);
         setTiers(tiers.map((t) => (t.id === tier.id ? { ...t, isActive: !t.isActive } : t)));
       } else {
-        toast.error("Failed to toggle tier status");
+        gooeyToast.error("Failed to toggle tier status");
       }
     } catch {
-      toast.error("Failed to toggle tier status");
+      gooeyToast.error("Failed to toggle tier status");
+    } finally {
+      setTogglingId(null);
     }
   };
 
@@ -250,8 +254,14 @@ export default function PricingPage() {
                     variant={tier.isActive ? "secondary" : "default"}
                     size="sm"
                     onClick={() => handleToggleActive(tier)}
+                    disabled={togglingId === tier.id}
                   >
-                    {tier.isActive ? (
+                    {togglingId === tier.id ? (
+                      <>
+                        <Loader2 className="size-3.5 mr-1 animate-spin" />
+                        Updating...
+                      </>
+                    ) : tier.isActive ? (
                       <>
                         <X className="size-3.5 mr-1" />
                         Deactivate
@@ -353,7 +363,7 @@ export default function PricingPage() {
               <Button onClick={handleSave} disabled={saving}>
                 {saving ? (
                   <>
-                    <Loader2 className="size-4 animate-spin" />
+                    <Loader2 className="size-4 mr-2 animate-spin" />
                     Saving...
                   </>
                 ) : (

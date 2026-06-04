@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DollarSign, RefreshCw } from "lucide-react";
+import { DollarSign, RefreshCw, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 
 interface Payment {
@@ -43,8 +43,10 @@ export default function PaymentsPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState("all");
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchPayments = useCallback(async () => {
+    setRefreshing(true);
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -59,6 +61,7 @@ export default function PaymentsPage() {
       console.error("Failed to fetch payments:", err);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [status]);
 
@@ -72,9 +75,18 @@ export default function PaymentsPage() {
           <h1 className="text-2xl font-bold tracking-tight">Payments</h1>
           <p className="text-muted-foreground">Track all payment transactions</p>
         </div>
-        <Button variant="outline" size="sm" onClick={fetchPayments}>
-          <RefreshCw className="size-4 mr-1" />
-          Refresh
+        <Button variant="outline" size="sm" onClick={fetchPayments} disabled={refreshing}>
+          {refreshing ? (
+            <>
+              <Loader2 className="size-4 mr-2 animate-spin" />
+              Refreshing...
+            </>
+          ) : (
+            <>
+              <RefreshCw className="size-4 mr-2" />
+              Refresh
+            </>
+          )}
         </Button>
       </div>
 
@@ -82,7 +94,7 @@ export default function PaymentsPage() {
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-3">
             <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-45">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -117,7 +129,8 @@ export default function PaymentsPage() {
           ) : payments.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <DollarSign className="size-10 mx-auto mb-2 opacity-50" />
-              <p>No payments found</p>
+              <p className="font-medium">No payments found</p>
+              <p className="text-sm mt-1">Payment transactions will appear here once customers make bookings</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
