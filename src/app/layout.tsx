@@ -2,6 +2,7 @@ import React from "react"
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { ThemeProvider } from '@/components/theme-provider'
 import './globals.css'
 
 const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
@@ -35,7 +36,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-          <html lang="en">
+          <html lang="en" suppressHydrationWarning>
             <head>
               <title>Journey to Africa | Juneteenth Legacy & Investment Experience Ghana 2026</title>
               <meta name="description" content="Join Journey to Africa in Ghana from June 15–24, 2026 for a 10-day Juneteenth legacy experience featuring Cape Coast, Elmina, Assin Manso, cultural events, networking, and curated diaspora connection." />
@@ -43,8 +44,15 @@ export default function RootLayout({
               <meta name="brand-positioning" content="Journey to Africa is a premium diaspora legacy experience connecting history, spirituality, culture, and future opportunity in Ghana." />
             </head>
             <body className={`${inter.variable} font-sans antialiased`}>
-              {children}
-              <Analytics />
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem
+                disableTransitionOnChange
+              >
+                {children}
+                <Analytics />
+              </ThemeProvider>
             </body>
           </html>
   )
