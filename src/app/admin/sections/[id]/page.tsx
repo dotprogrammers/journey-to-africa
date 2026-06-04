@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
+import { gooeyToast } from "@/components/admin/gooey-toast";
 import {
   ArrowLeft,
   Save,
@@ -109,7 +109,7 @@ function SortableItem({ item, index, sectionSlug, onEdit, onRemove }: SortableIt
 
         {/* Title/Description overlay for Inclusions/Stats */}
         {["inclusions_section", "stats_section"].includes(sectionSlug) && (
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-3 flex flex-col justify-end">
+          <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent p-3 flex flex-col justify-end">
             <p className="text-white text-xs font-bold truncate">{item.title}</p>
             <p className="text-white/70 text-[10px] line-clamp-2">
               {sectionSlug === "stats_section" ? item.subtitle : (item.subtitle || item.description)}
@@ -279,6 +279,7 @@ export default function SectionEditorPage() {
   const [section, setSection] = useState<Section | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingOrder, setSavingOrder] = useState(false);
   const [editItem, setEditItem] = useState<SectionItem | null>(null);
   const [editItemIndex, setEditItemIndex] = useState<number | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -316,8 +317,8 @@ export default function SectionEditorPage() {
       const newItems = arrayMove(items, oldIndex, newIndex);
       setItems(newItems);
 
-      // Auto-save after reordering
       const saveOrder = async () => {
+        setSavingOrder(true);
         try {
           const payload = {
             ...formData,
@@ -326,14 +327,22 @@ export default function SectionEditorPage() {
               sortOrder: index,
             })),
           };
-          await fetch(`/api/admin/sections/${id}`, {
+          const res = await fetch(`/api/admin/sections/${id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
           });
-          toast.success("Order updated");
+          if (res.ok) {
+            gooeyToast.success("Order updated");
+          } else {
+            gooeyToast.error("Failed to save order");
+            setItems(items);
+          }
         } catch {
-          toast.error("Failed to save order");
+          gooeyToast.error("Failed to save order");
+          setItems(items);
+        } finally {
+          setSavingOrder(false);
         }
       };
       saveOrder();
@@ -397,17 +406,17 @@ export default function SectionEditorPage() {
       });
 
       if (res.ok) {
-        toast.success("Section saved successfully");
+        gooeyToast.success("Section saved successfully");
         const data = await res.json();
         if (data.data) {
           setItems(data.data.items || []);
         }
       } else {
         const data = await res.json();
-        toast.error(data.error || "Failed to save section");
+        gooeyToast.error(data.error || "Failed to save section");
       }
     } catch {
-      toast.error("Failed to save section");
+      gooeyToast.error("Failed to save section");
     } finally {
       setSaving(false);
     }
@@ -489,15 +498,15 @@ export default function SectionEditorPage() {
             </p>
           </div>
         </div>
-        <Button onClick={handleSave} disabled={saving}>
-          {saving ? (
+        <Button onClick={handleSave} disabled={saving || savingOrder}>
+          {saving || savingOrder ? (
             <>
-              <Loader2 className="size-4 animate-spin" />
-              Saving...
+              <Loader2 className="mr-2 size-4 animate-spin" />
+              {savingOrder ? "Saving..." : "Saving..."}
             </>
           ) : (
             <>
-              <Save className="size-4" />
+              <Save className="mr-2 size-4" />
               Save Changes
             </>
           )}
@@ -669,7 +678,10 @@ export default function SectionEditorPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Section Items</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  Section Items
+                  {savingOrder && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
+                </CardTitle>
                 <CardDescription>Manage the items within this section</CardDescription>
               </div>
               <Button size="sm" onClick={handleAddItem}>

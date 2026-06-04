@@ -23,7 +23,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { toast } from "sonner";
+import { gooeyToast } from "@/components/admin/gooey-toast";
 import {
   Upload,
   Trash2,
@@ -55,6 +55,7 @@ export default function MediaPage() {
   const [files, setFiles] = useState<MediaFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
   const [editFile, setEditFile] = useState<MediaFile | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteFile, setDeleteFile] = useState<MediaFile | null>(null);
@@ -85,10 +86,12 @@ export default function MediaPage() {
     if (!selectedFiles || selectedFiles.length === 0) return;
 
     setUploading(true);
+    setUploadProgress({ current: 0, total: selectedFiles.length });
     let successCount = 0;
     let failCount = 0;
 
-    for (const file of Array.from(selectedFiles)) {
+    for (let i = 0; i < selectedFiles.length; i++) {
+      const file = selectedFiles[i];
       try {
         const formData = new FormData();
         formData.append("file", file);
@@ -105,22 +108,24 @@ export default function MediaPage() {
         }
       } catch {
         failCount++;
+      } finally {
+        setUploadProgress({ current: i + 1, total: selectedFiles.length });
       }
     }
 
     if (successCount > 0) {
-      toast.success(`${successCount} file${successCount > 1 ? "s" : ""} uploaded successfully`);
+      gooeyToast.success(`${successCount} file${successCount > 1 ? "s" : ""} uploaded successfully`);
     }
     if (failCount > 0) {
-      toast.error(`${failCount} file${failCount > 1 ? "s" : ""} failed to upload`);
+      gooeyToast.error(`${failCount} file${failCount > 1 ? "s" : ""} failed to upload`);
     }
 
-    // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
 
     setUploading(false);
+    setUploadProgress({ current: 0, total: 0 });
     fetchFiles();
   };
 
@@ -144,15 +149,15 @@ export default function MediaPage() {
       });
 
       if (res.ok) {
-        toast.success("Media file updated");
+        gooeyToast.success("Media file updated");
         setEditDialogOpen(false);
         fetchFiles();
       } else {
         const data = await res.json();
-        toast.error(data.error || "Failed to update file");
+        gooeyToast.error(data.error || "Failed to update file");
       }
     } catch {
-      toast.error("Failed to update file");
+      gooeyToast.error("Failed to update file");
     }
   };
 
@@ -165,15 +170,15 @@ export default function MediaPage() {
       });
 
       if (res.ok) {
-        toast.success("File deleted successfully");
+        gooeyToast.success("File deleted successfully");
         setDeleteFile(null);
         fetchFiles();
       } else {
         const data = await res.json();
-        toast.error(data.error || "Failed to delete file");
+        gooeyToast.error(data.error || "Failed to delete file");
       }
     } catch {
-      toast.error("Failed to delete file");
+      gooeyToast.error("Failed to delete file");
     } finally {
       setDeleting(false);
     }
@@ -181,7 +186,7 @@ export default function MediaPage() {
 
   const handleCopyPath = (filePath: string) => {
     navigator.clipboard.writeText(filePath);
-    toast.success("File path copied to clipboard");
+    gooeyToast.success("File path copied to clipboard");
   };
 
   const formatFileSize = (bytes: number): string => {
@@ -241,7 +246,7 @@ export default function MediaPage() {
             {uploading ? (
               <>
                 <Loader2 className="size-4 mr-2 animate-spin" />
-                Uploading...
+                Uploading {uploadProgress.current}/{uploadProgress.total}...
               </>
             ) : (
               <>

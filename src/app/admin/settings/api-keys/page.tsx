@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "sonner";
-import { Key, Save, Loader2, Plus, Trash2, ArrowLeft } from "lucide-react";
+import { gooeyToast } from "@/components/admin/gooey-toast";
+import { Key, Save, Loader2, Plus, Trash2, ArrowLeft, Copy, Check, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 
 interface SystemConfig {
@@ -38,13 +39,17 @@ const PREDEFINED_KEYS = [
 ];
 
 export default function ApiKeysPage() {
+  const { data: session } = useSession();
+  const activeUserRole = (session?.user as { role?: string })?.role || "admin";
   const [configs, setConfigs] = useState<SystemConfig[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [selectedKey, setSelectedKey] = useState("");
   const [inputValue, setInputValue] = useState("");
   const [activeGateway, setActiveGateway] = useState<string>("paystack");
   const [updatingGateway, setUpdatingGateway] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchConfigs();
@@ -58,7 +63,7 @@ export default function ApiKeysPage() {
         setConfigs(data.data);
         
         // Find active payment gateway
-        const gatewayConfig = data.data.find((c: any) => c.key === "active_payment_gateway");
+        const gatewayConfig = data.data.find((c: { key: string; value: string }) => c.key === "active_payment_gateway");
         if (gatewayConfig) {
           setActiveGateway(gatewayConfig.value);
         }
@@ -88,13 +93,13 @@ export default function ApiKeysPage() {
       });
 
       if (res.ok) {
-        toast.success(`Payment gateway switched to ${value}`);
+        gooeyToast.success(`Payment gateway switched to ${value}`);
         fetchConfigs();
       } else {
-        toast.error("Failed to update payment gateway");
+        gooeyToast.error("Failed to update payment gateway");
       }
     } catch {
-      toast.error("Failed to update payment gateway");
+      gooeyToast.error("Failed to update payment gateway");
     } finally {
       setUpdatingGateway(false);
     }
@@ -102,7 +107,7 @@ export default function ApiKeysPage() {
 
   const handleSave = async () => {
     if (!selectedKey || !inputValue) {
-      toast.error("Please select a key and enter a value");
+      gooeyToast.error("Please select a key and enter a value");
       return;
     }
 
@@ -124,18 +129,49 @@ export default function ApiKeysPage() {
       });
 
       if (res.ok) {
-        toast.success("API Key saved successfully");
+        gooeyToast.success("API Key saved successfully");
         setInputValue("");
         setSelectedKey("");
         fetchConfigs();
       } else {
         const data = await res.json();
-        toast.error(data.error || "Failed to save API key");
+        gooeyToast.error(data.error || "Failed to save API key");
       }
     } catch {
-      toast.error("Failed to save API key");
+      gooeyToast.error("Failed to save API key");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDelete = async (config: SystemConfig) => {
+    setDeletingId(config.id);
+    try {
+      const res = await fetch(`/api/admin/settings/configs?id=${config.id}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        gooeyToast.success("API Key deleted");
+        fetchConfigs();
+      } else {
+        gooeyToast.error("Failed to delete API key");
+      }
+    } catch {
+      gooeyToast.error("Failed to delete API key");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleCopy = async (config: SystemConfig) => {
+    try {
+      await navigator.clipboard.writeText(config.key);
+      setCopiedId(config.id);
+      gooeyToast.success("Key copied to clipboard");
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch {
+      gooeyToast.error("Failed to copy");
     }
   };
 
@@ -144,6 +180,30 @@ export default function ApiKeysPage() {
       <div className="space-y-4">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
+
+  if (session && activeUserRole !== "super_admin") {
+    return (
+      <div className="flex items-center justify-center min-h-[70vh]">
+        <Card className="max-w-md w-full border-amber-200 bg-amber-50/50 shadow-md rounded-2xl">
+          <CardHeader className="text-center">
+            <ShieldAlert className="size-12 text-amber-600 mx-auto mb-3" />
+            <CardTitle className="text-xl text-amber-900 font-serif">Super Admin Access Required</CardTitle>
+            <CardDescription className="text-amber-800 text-sm mt-2 leading-relaxed">
+              Managing payment credentials, SMTP credentials, and Cloudinary keys is restricted to **Super Administrators**.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center pb-6">
+            <Button asChild className="rounded-full bg-slate-900 text-white hover:bg-slate-800 px-6">
+              <Link href="/admin">
+                <ArrowLeft className="size-4 mr-2" />
+                Back to Dashboard
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -170,7 +230,7 @@ export default function ApiKeysPage() {
         <CardContent>
           <div className="flex items-center gap-4">
             <Select value={activeGateway} onValueChange={handleGatewayChange} disabled={updatingGateway}>
-              <SelectTrigger className="w-[200px] bg-white">
+              <SelectTrigger className="w-50 bg-white">
                 <SelectValue placeholder="Select Gateway" />
               </SelectTrigger>
               <SelectContent>
@@ -261,12 +321,38 @@ export default function ApiKeysPage() {
               <div className="space-y-4">
                 {configs.map((config) => (
                   <div key={config.id} className="flex items-center justify-between p-3 rounded-lg border bg-slate-50">
-                    <div>
+                    <div className="flex-1 min-w-0 mr-2">
                       <p className="text-sm font-medium">{config.label}</p>
-                      <p className="text-xs text-muted-foreground font-mono">{config.key}</p>
+                      <p className="text-xs text-muted-foreground font-mono truncate">{config.key}</p>
                     </div>
-                    <div className="text-xs font-mono bg-white px-2 py-1 rounded border">
-                      {config.value}
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8"
+                        onClick={() => handleCopy(config)}
+                        title="Copy key"
+                      >
+                        {copiedId === config.id ? (
+                          <Check className="size-3.5 text-emerald-500" />
+                        ) : (
+                          <Copy className="size-3.5" />
+                        )}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 text-destructive hover:text-destructive"
+                        onClick={() => handleDelete(config)}
+                        disabled={deletingId === config.id}
+                        title="Delete key"
+                      >
+                        {deletingId === config.id ? (
+                          <Loader2 className="size-3.5 animate-spin" />
+                        ) : (
+                          <Trash2 className="size-3.5" />
+                        )}
+                      </Button>
                     </div>
                   </div>
                 ))}
