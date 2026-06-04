@@ -277,7 +277,7 @@ export default function BookingPage() {
 
       // Step 5: Redirect to confirmation
       router.push(`/booking-confirmation?ref=${bookingData.data.bookingReference}`);
-    } catch (err: any) {
+    } catch {
       setError("An unexpected error occurred. Please try again.");
       setSubmitting(false);
     }

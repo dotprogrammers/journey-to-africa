@@ -151,7 +151,7 @@ function BookingConfirmationContent() {
             data.data?.message || data.error || "Payment verification failed"
           );
         }
-      } catch (err: any) {
+      } catch {
         setPaymentState("error");
         setPaymentError("Failed to verify payment. Please try again.");
       }
@@ -221,7 +221,7 @@ function BookingConfirmationContent() {
         setPaymentState("error");
         setPaymentError(data.error || "Failed to initialize payment");
       }
-    } catch (err: any) {
+    } catch {
       setPaymentState("error");
       setPaymentError("Failed to initialize payment. Please try again.");
     }
