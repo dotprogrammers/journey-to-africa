@@ -2,8 +2,18 @@
 
 import { useEffect, useState } from "react";
 
+interface HostBlock {
+  title: string;
+  description: string;
+}
+
+interface ContentBlockData {
+  title?: string;
+  items?: HostBlock[];
+}
+
 export function HostSection() {
-  const [contentBlock, setContentBlock] = useState<any>(null);
+  const [contentBlock, setContentBlock] = useState<ContentBlockData | null>(null);
 
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/cms/blocks`, {
@@ -34,7 +44,7 @@ export function HostSection() {
     <section id="host" className="bg-background py-12 md:py-16 lg:py-20">
       <div className="max-w-2xl mx-auto px-6 md:px-12 lg:px-20 text-center">
         <h3 className="text-xl md:text-2xl font-bold text-foreground mb-6">{displayTitle}</h3>
-        {displayHosts.map((host: any, index: number) => (
+        {displayHosts.map((host, index) => (
           <div key={index} className="mb-6 last:mb-0">
             <p className="text-base md:text-lg text-foreground font-semibold">{host.title}</p>
             <p className="text-sm md:text-base text-muted-foreground">{host.description}</p>

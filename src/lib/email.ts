@@ -2,6 +2,12 @@ import nodemailer from "nodemailer";
 import { db } from "@/lib/db";
 import { decrypt } from "./encryption";
 
+interface SendEmailAttachment {
+  filename: string;
+  content: Buffer | string;
+  contentType?: string;
+}
+
 interface SendEmailParams {
   to: string;
   subject: string;
@@ -11,10 +17,46 @@ interface SendEmailParams {
   userId?: string;
   bookingId?: string;
   templateId?: string;
+  attachments?: SendEmailAttachment[];
 }
 
 interface TemplateData {
   [key: string]: string;
+}
+
+/**
+ * Escape a value for safe interpolation into HTML, preventing HTML/script
+ * injection through template variables.
+ */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/**
+ * Replace all {{key}} placeholders with the provided replacement.
+ * Uses a function-based replacement so special characters in the value
+ * (e.g. "$&", "$1") are inserted literally rather than interpreted as
+ * String.prototype.replace substitution patterns.
+ */
+function fillTemplate(
+  template: string,
+  data: TemplateData,
+  options: { escape: boolean }
+): string {
+  let output = template;
+  for (const [key, value] of Object.entries(data)) {
+    const replacement = options.escape ? escapeHtml(value) : value;
+    output = output.replace(
+      new RegExp(`\\{\\{${key}\\}\\}`, "g"),
+      () => replacement
+    );
+  }
+  return output;
 }
 
 class EmailService {
@@ -114,6 +156,7 @@ class EmailService {
         subject: params.subject,
         html: params.html,
         text: params.text,
+        attachments: params.attachments,
       });
 
       // Log successful email
@@ -186,25 +229,15 @@ class EmailService {
         return false;
       }
 
-      // Replace {{variable}} placeholders in subject
-      let subject = template.subject;
-      for (const [key, value] of Object.entries(data)) {
-        subject = subject.replace(new RegExp(`\\{\\{${key}\\}\\}`, "g"), value);
-      }
+      // Replace {{variable}} placeholders. The subject is plain text, but the
+      // HTML body must be escaped to prevent HTML/script injection.
+      const subject = fillTemplate(template.subject, data, { escape: false });
+      const html = fillTemplate(template.bodyHtml, data, { escape: true });
 
-      // Replace {{variable}} placeholders in HTML body
-      let html = template.bodyHtml;
-      for (const [key, value] of Object.entries(data)) {
-        html = html.replace(new RegExp(`\\{\\{${key}\\}\\}`, "g"), value);
-      }
-
-      // Replace placeholders in text body if available
+      // Replace placeholders in text body if available (plain text, no escaping)
       let text: string | undefined;
       if (template.bodyText) {
-        text = template.bodyText;
-        for (const [key, value] of Object.entries(data)) {
-          text = text.replace(new RegExp(`\\{\\{${key}\\}\\}`, "g"), value);
-        }
+        text = fillTemplate(template.bodyText, data, { escape: false });
       }
 
       return this.sendEmail({

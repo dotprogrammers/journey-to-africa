@@ -201,8 +201,8 @@ class PaystackService {
     const webhookSecret = config ? decrypt(config.value) : (process.env.PAYSTACK_WEBHOOK_SECRET || "");
     
     if (!webhookSecret) {
-      console.warn("PAYSTACK_WEBHOOK_SECRET is not set - webhook verification disabled");
-      return true; // Allow in development
+      console.error("PAYSTACK_WEBHOOK_SECRET is not set - webhook verification FAILING (security)");
+      return false;
     }
 
     const expectedSignature = crypto
@@ -210,7 +210,14 @@ class PaystackService {
       .update(payload)
       .digest("hex");
 
-    return expectedSignature === signature;
+    // Use constant-time comparison to prevent timing attacks
+    if (expectedSignature.length !== signature.length) {
+      return false;
+    }
+    return crypto.timingSafeEqual(
+      Buffer.from(expectedSignature, 'hex'),
+      Buffer.from(signature, 'hex')
+    );
   }
 }
 

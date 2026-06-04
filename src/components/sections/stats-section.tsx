@@ -2,9 +2,27 @@
 
 import { useEffect, useState } from "react";
 
+interface StatItem {
+  label?: string;
+  title?: string;
+  value?: string;
+  subtitle?: string;
+  sortOrder?: number;
+  sort_order?: number;
+}
+
+interface TripData {
+  stats: StatItem[];
+}
+
+interface ContentBlockData {
+  items?: StatItem[];
+  content?: string;
+}
+
 export function StatsSection() {
-  const [trip, setTrip] = useState<any>(null);
-  const [contentBlock, setContentBlock] = useState<any>(null);
+  const [trip, setTrip] = useState<TripData | null>(null);
+  const [contentBlock, setContentBlock] = useState<ContentBlockData | null>(null);
 
   useEffect(() => {
     // Fetch Trip Stats
@@ -32,13 +50,13 @@ export function StatsSection() {
       .catch(err => console.error("Error fetching blocks:", err));
   }, []);
 
-  const stats = [...(trip?.stats || contentBlock?.items || [])].sort((a, b) => (a.sortOrder ?? a.sort_order ?? 0) - (b.sortOrder ?? b.sort_order ?? 0));
+  const stats: StatItem[] = [...(trip?.stats || contentBlock?.items || [])].sort((a, b) => (a.sortOrder ?? a.sort_order ?? 0) - (b.sortOrder ?? b.sort_order ?? 0));
 
   return (
     <section id="stats" className="bg-background py-20 md:py-32 lg:py-40">
       <div className="max-w-3xl mx-auto px-6 md:px-12 lg:px-20 text-center">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
-          {stats.map((stat: any, index: number) => (
+          {stats.map((stat, index) => (
             <div key={index}>
               <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">{stat.label || stat.title}</p>
               <p className="text-2xl font-bold text-foreground">{stat.value || stat.subtitle}</p>

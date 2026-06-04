@@ -34,7 +34,8 @@ export function AuthGuard({ children }: AuthGuardProps) {
     return null;
   }
 
-  if (session && (session.user as { role: string })?.role !== "admin") {
+  const role = (session?.user as { role?: string })?.role;
+  if (session && role !== "admin" && role !== "super_admin") {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="text-center">

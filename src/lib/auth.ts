@@ -29,11 +29,95 @@ export const authOptions: NextAuthOptions = {
           );
 
           if (isValidPassword) {
+            // IP Whitelist Check: If admin has whitelist entries, verify current IP
+            try {
+              const { headers } = await import("next/headers");
+              const headersList = await headers();
+              const currentIp = headersList.get("x-forwarded-for")?.split(",")[0]?.trim()
+                || headersList.get("x-real-ip")
+                || "127.0.0.1";
+
+              const whitelistEntries = await db.adminIpWhitelist.findMany({
+                where: {
+                  adminId: admin.id,
+                  isActive: true,
+                },
+                select: { ipAddress: true },
+              });
+
+              // If admin has IP whitelist entries, current IP must be in the list
+              if (whitelistEntries.length > 0) {
+                const isIpAllowed = whitelistEntries.some(
+                  (entry) => entry.ipAddress === currentIp
+                );
+
+                if (!isIpAllowed) {
+                  // Log the blocked login attempt
+                  try {
+                    const userAgent = headersList.get("user-agent") || "Unknown Device";
+                    await db.activityLog.create({
+                      data: {
+                        adminId: admin.id,
+                        action: "admin_login_blocked_ip",
+                        subjectType: "AdminUser",
+                        subjectId: admin.id,
+                        ipAddress: currentIp,
+                        userAgent,
+                        properties: JSON.stringify({
+                          email: admin.email,
+                          name: admin.name,
+                          reason: "IP address not in whitelist",
+                          attemptedIp: currentIp,
+                        }),
+                      },
+                    });
+                  } catch (logErr) {
+                    console.error("Failed to log blocked login attempt:", logErr);
+                  }
+
+                  throw new Error(
+                    `Access denied: Your IP address (${currentIp}) is not authorized. Contact your Super Admin to whitelist this IP.`
+                  );
+                }
+              }
+            } catch (ipCheckError: unknown) {
+              // Re-throw our custom error, but swallow other errors (fallback to allow)
+              if (ipCheckError instanceof Error && ipCheckError.message?.includes("Access denied")) {
+                throw ipCheckError;
+              }
+              console.error("IP whitelist check failed (allowing login):", ipCheckError);
+            }
+
             // Update last login
             await db.adminUser.update({
               where: { id: admin.id },
               data: { lastLoginAt: new Date() },
             });
+
+            // Log successful login inside ActivityLog table
+            try {
+              const { headers } = await import("next/headers");
+              const headersList = await headers();
+              const userAgent = headersList.get("user-agent") || "Unknown Device";
+              const ipAddress = headersList.get("x-forwarded-for")?.split(",")[0] || headersList.get("x-real-ip") || "127.0.0.1";
+
+              await db.activityLog.create({
+                data: {
+                  adminId: admin.id,
+                  action: "admin_login",
+                  subjectType: "AdminUser",
+                  subjectId: admin.id,
+                  ipAddress,
+                  userAgent,
+                  properties: JSON.stringify({
+                    email: admin.email,
+                    name: admin.name,
+                  }),
+                },
+              });
+            } catch (err) {
+              console.error("Failed to log admin login activity:", err);
+            }
 
             return {
               id: admin.id,
@@ -78,15 +162,15 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = (user as { role: string }).role;
+        token.role = user.role as string;
         token.id = user.id;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        (session.user as { role: string }).role = token.role as string;
-        (session.user as { id: string }).id = token.id as string;
+        session.user.role = token.role as string;
+        session.user.id = token.id as string;
       }
       return session;
     },

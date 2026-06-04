@@ -26,7 +26,7 @@ class StripeService {
     }
 
     this.stripe = new Stripe(secretKey, {
-      apiVersion: "2024-12-18.acacia" as any,
+      apiVersion: "2024-12-18.acacia" as never,
     });
 
     return this.stripe;
@@ -88,8 +88,10 @@ class StripeService {
     const webhookSecret = config ? decrypt(config.value) : (process.env.STRIPE_WEBHOOK_SECRET || "");
     
     if (!webhookSecret) {
-      console.warn("STRIPE_WEBHOOK_SECRET is not set - webhook verification disabled");
-      return true; // Allow in development if specifically desired, but usually you want to fail
+      // Throw instead of returning false: a missing secret is a configuration
+      // error, not a verification failure. The webhook route catches this and
+      // returns a 400, avoiding a confusing "false is not a Stripe.Event" crash.
+      throw new Error("STRIPE_WEBHOOK_SECRET is not configured");
     }
 
     return stripe.webhooks.constructEvent(payload, signature, webhookSecret);

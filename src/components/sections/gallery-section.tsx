@@ -10,7 +10,7 @@ export function GallerySection() {
   const [sectionHeight, setSectionHeight] = useState("100vh");
   const [translateX, setTranslateX] = useState(0);
   const rafRef = useRef<number | null>(null);
-  const [contentBlock, setContentBlock] = useState<any>(null);
+  const [contentBlock, setContentBlock] = useState<{ heading?: string; subheading?: string; items?: Array<Record<string, unknown>> } | null>(null);
 
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/cms/gallery_section`, {
@@ -27,11 +27,11 @@ export function GallerySection() {
 
   const displayTitle = contentBlock?.heading || "Moments of Return";
   const displaySubtitle = contentBlock?.subheading || "History. Celebration. Reflection. Connection.";
-  const images = contentBlock?.items?.length > 0 ? [...contentBlock.items]
-    .sort((a: any, b: any) => (a.sortOrder ?? a.sort_order ?? 0) - (b.sortOrder ?? b.sort_order ?? 0))
-    .map((item: any) => ({
-    src: item.image || item.url,
-    alt: item.image_alt || "Gallery image"
+  const images = contentBlock?.items && contentBlock.items.length > 0 ? [...contentBlock.items]
+    .sort((a: Record<string, unknown>, b: Record<string, unknown>) => ((a.sortOrder ?? a.sort_order ?? 0) as number) - ((b.sortOrder ?? b.sort_order ?? 0) as number))
+    .map((item: Record<string, unknown>) => ({
+    src: String(item.image || item.url),
+    alt: String(item.image_alt || "Gallery image")
   })) : [
     { src: "https://images.pexels.com/photos/1208777/pexels-photo-1208777.jpeg?auto=compress&cs=tinysrgb&w=1200", alt: "Adventure cycling" },
     { src: "https://images.pexels.com/photos/1659437/pexels-photo-1659437.jpeg?auto=compress&cs=tinysrgb&w=1200", alt: "Lake reflection" },

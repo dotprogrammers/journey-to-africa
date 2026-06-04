@@ -15,7 +15,7 @@ async function getCloudinaryConfig() {
   });
 
   const configMap: Record<string, string> = {};
-  configs.forEach((config: any) => {
+  configs.forEach((config) => {
     configMap[config.key] = config.isEncrypted ? decrypt(config.value) : config.value;
   });
 

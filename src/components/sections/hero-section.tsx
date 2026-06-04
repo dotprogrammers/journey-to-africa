@@ -7,7 +7,7 @@ import { SmartImage } from "@/components/smart-image";
 export function HeroSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
-  const [heroData, setHeroData] = useState<any>(null);
+  const [heroData, setHeroData] = useState<Record<string, unknown> | null>(null);
 
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/cms/hero`, {
@@ -24,13 +24,14 @@ export function HeroSection() {
       .catch(err => console.error("Error fetching hero data:", err));
   }, []);
 
-  const displaySideImages = heroData?.side_images?.length > 0 
-    ? [...heroData.side_images]
-        .sort((a: any, b: any) => (a.sortOrder ?? a.sort_order ?? 0) - (b.sortOrder ?? b.sort_order ?? 0))
-        .map((img: any) => ({
-        src: img.image || img.url,
-        alt: img.image_alt || "Hero side image",
-        position: img.position || "right",
+  const sideImages = (heroData?.side_images ?? []) as Array<Record<string, unknown>>;
+  const displaySideImages = sideImages.length > 0
+    ? [...sideImages]
+        .sort((a: Record<string, unknown>, b: Record<string, unknown>) => ((a.sortOrder ?? a.sort_order ?? 0) as number) - ((b.sortOrder ?? b.sort_order ?? 0) as number))
+        .map((img: Record<string, unknown>) => ({
+        src: String(img.image || img.url),
+        alt: String(img.image_alt || "Hero side image"),
+        position: String(img.position || "right"),
         span: Number(img.span) || 1
       }))
     : [
@@ -47,26 +48,30 @@ export function HeroSection() {
           span: 1,
         },
         {
-          src: "https://images.pexels.com/photos/1271619/pexels-photo-1271619.jpeg?auto=compress&cs=tinysrgb&w=1000",
-          alt: "Forest exploration",
+          src: "https://images.pexels.com/photos/1578750/pexels-photo-1578750.jpeg?auto=compress&cs=tinysrgb&w=1000",
+          alt: "Mountain peak view",
           position: "right",
           span: 1,
         },
         {
-          src: "https://images.pexels.com/photos/1687093/pexels-photo-1687093.jpeg?auto=compress&cs=tinysrgb&w=1000",
-          alt: "Lake camping view",
+          src: "https://images.pexels.com/photos/2387418/pexels-photo-2387418.jpeg?auto=compress&cs=tinysrgb&w=1000",
+          alt: "Forest trail",
           position: "right",
           span: 1,
         },
       ];
 
-  const mainTitle = heroData?.title || "JOURNEY TO AFRICA";
-  const subtitle = heroData?.subtitle || "Return to Ghana with purpose.";
-  const tagline = heroData?.tagline || "Juneteenth Legacy & Investment Experience";
-  const description = heroData?.description || "A 10-day curated diaspora journey through Ghana centered on history, reflection, culture, and meaningful connection to Africa’s future.";
-  const primaryBtn = heroData?.buttons?.primary || { text: "Reserve Your Place", link: "#reserve" };
-  const secondaryBtn = heroData?.buttons?.secondary || { text: "View Experience", link: "#experience" };
-  const mainImage = getFallbackImage(heroData?.main_image || heroData?.backgroundImage, 'hero');
+  const mainTitle = String(heroData?.title || "JOURNEY TO AFRICA");
+  const subtitle = String(heroData?.subtitle || "Return to Ghana with purpose.");
+  const tagline = String(heroData?.tagline || "Juneteenth Legacy & Investment Experience");
+  const description = String(heroData?.description || "A 10-day curated diaspora journey through Ghana centered on history, reflection, culture, and meaningful connection to Africa's future.");
+  interface HeroButton {
+    text: string;
+    link: string;
+  }
+  const primaryBtn: HeroButton = ((heroData?.buttons as Record<string, unknown>)?.primary as HeroButton) || { text: "Reserve Your Place", link: "#reserve" };
+  const secondaryBtn: HeroButton = ((heroData?.buttons as Record<string, unknown>)?.secondary as HeroButton) || { text: "View Experience", link: "#experience" };
+  const mainImage = getFallbackImage(String(heroData?.main_image || heroData?.backgroundImage), 'hero');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -146,7 +151,7 @@ export function HeroSection() {
                 opacity: sideOpacity,
               }}
             >
-              {displaySideImages.filter((img: any) => img.position === "left").map((img: any, idx: number) => (
+              {displaySideImages.filter((img) => img.position === "left").map((img, idx: number) => (
                 <div 
                   key={idx} 
                   className="relative overflow-hidden shadow-2xl transition-all duration-500 hover:scale-[1.02]"
@@ -226,7 +231,7 @@ export function HeroSection() {
                 opacity: sideOpacity,
               }}
             >
-              {displaySideImages.filter((img: any) => img.position === "right").map((img: any, idx: number) => (
+              {displaySideImages.filter((img) => img.position === "right").map((img, idx: number) => (
                 <div 
                   key={idx} 
                   className="relative overflow-hidden shadow-2xl transition-all duration-500 hover:scale-[1.02]"

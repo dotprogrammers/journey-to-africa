@@ -2,9 +2,28 @@
 
 import { useEffect, useState } from "react";
 
+interface PricingTier {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+}
+
+interface TripData {
+  id: string;
+  name: string;
+  pricing: PricingTier[];
+  stats: Record<string, string>[];
+}
+
+interface ContentBlockData {
+  title?: string;
+  items?: Array<{ description?: string }>;
+}
+
 export function PricingSection() {
-  const [trips, setTrips] = useState<any[]>([]);
-  const [contentBlock, setContentBlock] = useState<any>(null);
+  const [trips, setTrips] = useState<TripData[]>([]);
+  const [contentBlock, setContentBlock] = useState<ContentBlockData | null>(null);
 
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/cms/trips`, {
@@ -39,7 +58,7 @@ export function PricingSection() {
       <div className="max-w-3xl mx-auto px-6 md:px-12 lg:px-20 text-center">
         <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">{displayTitle}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
-          {activeTrip?.pricing?.map((tier: any) => (
+          {activeTrip?.pricing?.map((tier) => (
             <div key={tier.id} className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-center">
               <span className="text-lg font-bold text-foreground mb-2">{tier.name}</span>
               <span className="text-sm text-muted-foreground mb-1">{tier.description}</span>

@@ -15,21 +15,21 @@ export async function getSiteSettings() {
 }
 
 export async function getSections() {
-  const data = await fetchAPI<{ success: boolean; data: any[] }>('/api/sections');
+  const data = await fetchAPI<{ success: boolean; data: Record<string, unknown>[] }>('/api/sections');
   return data.data;
 }
 
 export async function getSection(slug: string) {
-  const data = await fetchAPI<{ success: boolean; data: any }>(`/api/sections/${slug}`);
+  const data = await fetchAPI<{ success: boolean; data: Record<string, unknown> }>(`/api/sections/${slug}`);
   return data.data;
 }
 
 export async function getNavigation(location: string) {
-  const data = await fetchAPI<{ success: boolean; data: any[] }>(`/api/navigation/${location}`);
+  const data = await fetchAPI<{ success: boolean; data: Record<string, unknown>[] }>(`/api/navigation/${location}`);
   return data.data;
 }
 
 export async function getPricingTiers() {
-  const data = await fetchAPI<{ success: boolean; data: any[] }>('/api/pricing-tiers');
+  const data = await fetchAPI<{ success: boolean; data: Record<string, unknown>[] }>('/api/pricing-tiers');
   return data.data;
 }

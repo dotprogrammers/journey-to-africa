@@ -1,10 +1,12 @@
 import type { Booking, Payment, PricingTier, Invoice, AdminUser } from "@prisma/client";
+import "next-auth";
+import type { DefaultSession } from "next-auth";
 
 // Booking status types
 export type BookingStatus = "pending" | "confirmed" | "cancelled" | "completed";
 export type PaymentStatus = "pending" | "processing" | "success" | "failed" | "refunded";
 export type InvoiceStatus = "draft" | "sent" | "paid" | "void";
-export type AdminRole = "admin" | "editor";
+export type AdminRole = "admin" | "editor" | "super_admin";
 
 // Booking with relations
 export type BookingWithRelations = Booking & {
@@ -74,4 +76,27 @@ export interface AdminSessionUser {
   email: string;
   name: string;
   role: AdminRole;
+}
+
+// ============================================================
+// NextAuth Session Types (for type-safe session access)
+// ============================================================
+
+declare module "next-auth" {
+  interface User {
+    role?: string;
+  }
+  interface Session {
+    user: {
+      id: string;
+      role: string;
+    } & DefaultSession["user"];
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    id: string;
+    role: string;
+  }
 }

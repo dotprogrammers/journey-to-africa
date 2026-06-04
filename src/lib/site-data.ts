@@ -2,15 +2,15 @@ import { db } from "@/lib/db";
 
 export interface SiteData {
   settings: Record<string, Record<string, string>>;
-  sections: Record<string, any>;
-  navLinks: { header: any[]; footer: any[] };
-  pricingTiers: any[];
+  sections: Record<string, Record<string, unknown>>;
+  navLinks: { header: Record<string, unknown>[]; footer: Record<string, unknown>[] };
+  pricingTiers: Record<string, unknown>[];
 }
 
 export async function getSiteData(): Promise<SiteData> {
   // Fetch all data in parallel directly from the database
   const [settings, sections, headerNav, footerNav, tiers] = await Promise.all([
-    db.siteSetting.findMany({ orderBy: [{ group: "asc" }, { sortOrder: "asc" }] }).catch(() => []),
+    db.siteSetting.findMany({ orderBy: [{ group: "asc" }, { sortOrder: "asc" }] }).catch((e) => { console.error("Failed to fetch site settings:", e); return []; }),
     db.section.findMany({
       where: { isActive: true },
       include: {
@@ -20,7 +20,7 @@ export async function getSiteData(): Promise<SiteData> {
         },
       },
       orderBy: { sortOrder: "asc" },
-    }).catch(() => []),
+    }).catch((e) => { console.error("Failed to fetch sections:", e); return []; }),
     db.navigationLink.findMany({
       where: { location: "header", isActive: true, parentId: null },
       include: {
@@ -30,7 +30,7 @@ export async function getSiteData(): Promise<SiteData> {
         },
       },
       orderBy: { sortOrder: "asc" },
-    }).catch(() => []),
+    }).catch((e) => { console.error("Failed to fetch header nav:", e); return []; }),
     db.navigationLink.findMany({
       where: { location: "footer", isActive: true, parentId: null },
       include: {
@@ -40,15 +40,15 @@ export async function getSiteData(): Promise<SiteData> {
         },
       },
       orderBy: { sortOrder: "asc" },
-    }).catch(() => []),
+    }).catch((e) => { console.error("Failed to fetch footer nav:", e); return []; }),
     db.pricingTier.findMany({
       where: { isActive: true },
       orderBy: { sortOrder: "asc" },
-    }).catch(() => []),
+    }).catch((e) => { console.error("Failed to fetch pricing tiers:", e); return []; }),
   ]);
 
   // Index sections by slug for easy lookup
-  const sectionsMap: Record<string, any> = {};
+  const sectionsMap: Record<string, Record<string, unknown>> = {};
   for (const section of sections) {
     sectionsMap[section.slug] = section;
   }
