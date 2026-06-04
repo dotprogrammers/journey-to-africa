@@ -29,7 +29,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "sonner";
+import { gooeyToast } from "@/components/admin/gooey-toast";
 import {
   Search,
   MoreHorizontal,
@@ -40,6 +40,7 @@ import {
   XCircle,
   CalendarCheck,
   RefreshCw,
+  Loader2,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -72,8 +73,11 @@ export default function BookingsPage() {
   const [status, setStatus] = useState(searchParams.get("status") || "all");
   const [search, setSearch] = useState("");
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchBookings = useCallback(async () => {
+    setRefreshing(true);
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -96,6 +100,7 @@ export default function BookingsPage() {
       console.error("Failed to fetch bookings:", err);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [status, search, pagination.page]);
 
@@ -103,6 +108,7 @@ export default function BookingsPage() {
   useEffect(() => { fetchBookings(); }, [fetchBookings]);
 
   const handleStatusChange = async (bookingId: string, newStatus: string) => {
+    setActionLoading(bookingId);
     try {
       const res = await fetch(`/api/admin/bookings/${bookingId}`, {
         method: "PUT",
@@ -111,14 +117,16 @@ export default function BookingsPage() {
       });
 
       if (res.ok) {
-        toast.success(`Booking ${newStatus} successfully`);
+        gooeyToast.success(`Booking ${newStatus} successfully`);
         fetchBookings();
       } else {
         const data = await res.json();
-        toast.error(data.error || "Failed to update booking");
+        gooeyToast.error(data.error || "Failed to update booking");
       }
     } catch {
-      toast.error("Failed to update booking");
+      gooeyToast.error("Failed to update booking");
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -148,9 +156,18 @@ export default function BookingsPage() {
           <h1 className="text-2xl font-bold tracking-tight">Bookings</h1>
           <p className="text-muted-foreground">Manage all booking requests</p>
         </div>
-        <Button variant="outline" size="sm" onClick={fetchBookings}>
-          <RefreshCw className="size-4 mr-1" />
-          Refresh
+        <Button variant="outline" size="sm" onClick={fetchBookings} disabled={refreshing}>
+          {refreshing ? (
+            <>
+              <Loader2 className="size-4 mr-2 animate-spin" />
+              Refreshing...
+            </>
+          ) : (
+            <>
+              <RefreshCw className="size-4 mr-2" />
+              Refresh
+            </>
+          )}
         </Button>
       </div>
 
@@ -177,7 +194,7 @@ export default function BookingsPage() {
                 setPagination((prev) => ({ ...prev, page: 1 }));
               }}
             >
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-45">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -285,9 +302,14 @@ export default function BookingsPage() {
                                   key={action.status}
                                   variant={action.variant}
                                   onClick={() => handleStatusChange(booking.id, action.status)}
+                                  disabled={actionLoading === booking.id}
                                 >
-                                  {action.icon}
-                                  {action.label}
+                                  {actionLoading === booking.id ? (
+                                    <Loader2 className="mr-2 size-4 animate-spin" />
+                                  ) : (
+                                    action.icon
+                                  )}
+                                  {actionLoading === booking.id ? "Updating..." : action.label}
                                 </DropdownMenuItem>
                               ))}
                             </DropdownMenuContent>
