@@ -27,8 +27,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "sonner";
-import { FileText, Download, Send, MoreHorizontal, RefreshCw } from "lucide-react";
+import { gooeyToast } from "@/components/admin/gooey-toast";
+import { FileText, Download, Send, MoreHorizontal, RefreshCw, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 
 interface Invoice {
@@ -50,8 +50,11 @@ export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState("all");
+  const [refreshing, setRefreshing] = useState(false);
+  const [resendingId, setResendingId] = useState<string | null>(null);
 
   const fetchInvoices = useCallback(async () => {
+    setRefreshing(true);
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -66,6 +69,7 @@ export default function InvoicesPage() {
       console.error("Failed to fetch invoices:", err);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [status]);
 
@@ -77,10 +81,22 @@ export default function InvoicesPage() {
   };
 
   const handleResend = async (invoice: Invoice) => {
+    setResendingId(invoice.id);
     try {
-      toast.success(`Invoice ${invoice.invoiceNumber} resent to ${invoice.billingEmail}`);
+      const res = await fetch(`/api/admin/invoices/resend?id=${invoice.id}`, {
+        method: "POST",
+      });
+
+      if (res.ok) {
+        gooeyToast.success(`Invoice ${invoice.invoiceNumber} resent to ${invoice.billingEmail}`);
+      } else {
+        const data = await res.json();
+        gooeyToast.error(data.error || "Failed to resend invoice");
+      }
     } catch {
-      toast.error("Failed to resend invoice");
+      gooeyToast.error("Failed to resend invoice");
+    } finally {
+      setResendingId(null);
     }
   };
 
@@ -91,9 +107,18 @@ export default function InvoicesPage() {
           <h1 className="text-2xl font-bold tracking-tight">Invoices</h1>
           <p className="text-muted-foreground">Manage and download invoices</p>
         </div>
-        <Button variant="outline" size="sm" onClick={fetchInvoices}>
-          <RefreshCw className="size-4 mr-1" />
-          Refresh
+        <Button variant="outline" size="sm" onClick={fetchInvoices} disabled={refreshing}>
+          {refreshing ? (
+            <>
+              <Loader2 className="size-4 mr-2 animate-spin" />
+              Refreshing...
+            </>
+          ) : (
+            <>
+              <RefreshCw className="size-4 mr-2" />
+              Refresh
+            </>
+          )}
         </Button>
       </div>
 
@@ -101,7 +126,7 @@ export default function InvoicesPage() {
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-3">
             <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-45">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -189,9 +214,16 @@ export default function InvoicesPage() {
                               <Download className="mr-2 size-4" />
                               Download PDF
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleResend(invoice)}>
-                              <Send className="mr-2 size-4" />
-                              Resend Email
+                            <DropdownMenuItem
+                              onClick={() => handleResend(invoice)}
+                              disabled={resendingId === invoice.id}
+                            >
+                              {resendingId === invoice.id ? (
+                                <Loader2 className="mr-2 size-4 animate-spin" />
+                              ) : (
+                                <Send className="mr-2 size-4" />
+                              )}
+                              {resendingId === invoice.id ? "Sending..." : "Resend Email"}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
