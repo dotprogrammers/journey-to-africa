@@ -90,12 +90,13 @@ export async function GET(
       }
 
       paystackData = verification.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Paystack API call failed (e.g., no secret key in dev mode)
-      console.error("Paystack verification API error:", error?.message);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      console.error("Paystack verification API error:", errorMessage);
 
-      // In development mode, simulate a successful payment for testing
-      if (!process.env.PAYSTACK_SECRET_KEY) {
+      // In development mode ONLY, simulate a successful payment for testing
+      if (!process.env.PAYSTACK_SECRET_KEY && process.env.NODE_ENV === 'development') {
         console.log("🔧 [DEV MODE] Simulating successful payment verification");
 
         // Update payment status
@@ -118,15 +119,18 @@ export async function GET(
           },
         });
 
-        // Increment tier's currentBookings
-        await db.pricingTier.update({
-          where: { id: payment.booking.pricingTierId },
-          data: {
-            currentBookings: {
-              increment: payment.booking.numberOfTravelers,
+        // Increment tier's currentBookings only if capacity wasn't already
+        // counted (e.g. admin confirmed first) to avoid double-counting.
+        if (!["confirmed", "paid", "completed"].includes(payment.booking.status)) {
+          await db.pricingTier.update({
+            where: { id: payment.booking.pricingTierId },
+            data: {
+              currentBookings: {
+                increment: payment.booking.numberOfTravelers,
+              },
             },
-          },
-        });
+          });
+        }
 
         // Send payment successful email
         emailService.sendPaymentSuccessful(
@@ -157,7 +161,6 @@ export async function GET(
         {
           success: false,
           error: "Failed to verify transaction with Paystack",
-          details: error?.message,
         },
         { status: 500 }
       );
@@ -187,15 +190,18 @@ export async function GET(
         },
       });
 
-      // Increment tier's currentBookings
-      await db.pricingTier.update({
-        where: { id: payment.booking.pricingTierId },
-        data: {
-          currentBookings: {
-            increment: payment.booking.numberOfTravelers,
+      // Increment tier's currentBookings only if capacity wasn't already
+      // counted (e.g. admin confirmed first) to avoid double-counting.
+      if (!["confirmed", "paid", "completed"].includes(payment.booking.status)) {
+        await db.pricingTier.update({
+          where: { id: payment.booking.pricingTierId },
+          data: {
+            currentBookings: {
+              increment: payment.booking.numberOfTravelers,
+            },
           },
-        },
-      });
+        });
+      }
 
       // Send payment successful email (fire and forget)
       emailService.sendPaymentSuccessful(

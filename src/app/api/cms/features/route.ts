@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 /**
  * @openapi
  * /api/cms/features:
@@ -77,21 +80,21 @@ export async function GET() {
       }
     });
 
-    const data: Record<string, any> = {
+    const data: Record<string, Array<Record<string, unknown>>> = {
       experience: [],
       pillars: [],
       inclusions: []
     };
 
-    sections.forEach((section: any) => {
-      const items = section.items.map((item: any) => ({
+    sections.forEach((section) => {
+      const items = section.items.map((item) => ({
         id: item.id,
         title: item.title,
         subtitle: item.subtitle,
         description: item.description,
         image: item.image,
         image_alt: item.imageAlt,
-        icon: item.icon,
+        icon: (item as unknown as Record<string, unknown>).icon ?? null,
         type: item.itemType,
         sortOrder: item.sortOrder
       }));

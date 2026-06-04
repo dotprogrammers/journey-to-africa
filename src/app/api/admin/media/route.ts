@@ -5,6 +5,20 @@ import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 
+// Max upload size: 10MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+// Allowed MIME types mapped to their canonical, server-derived file extension.
+// SVG is intentionally excluded — SVGs can carry inline scripts and, when served
+// from our own origin, become a stored-XSS vector.
+const ALLOWED_MIME_TYPES: Record<string, string> = {
+  "image/jpeg": ".jpg",
+  "image/png": ".png",
+  "image/webp": ".webp",
+  "image/gif": ".gif",
+  "image/avif": ".avif",
+};
+
 /**
  * GET /api/admin/media - List all media files
  */
@@ -57,39 +71,64 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Enforce MIME allowlist (rejects SVG and any non-image type)
+    const mimeType = file.type || "";
+    const allowedExtension = ALLOWED_MIME_TYPES[mimeType];
+    if (!allowedExtension) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Unsupported file type. Allowed types: JPEG, PNG, WebP, GIF, AVIF.",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Enforce size limit (10MB)
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { success: false, error: "File too large. Maximum size is 10MB." },
+        { status: 400 }
+      );
+    }
+
     // Get file info
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Determine file type
-    const mimeType = file.type || "application/octet-stream";
-    let fileType = "document";
-    if (mimeType.startsWith("image/")) fileType = "image";
-    else if (mimeType.startsWith("video/")) fileType = "video";
-    else if (mimeType.startsWith("audio/")) fileType = "audio";
-
-    // Attempt Cloudinary Upload if it's an image
-    let finalPath = "";
-    if (fileType === "image") {
-      try {
-        const cloudinaryResult = await uploadToCloudinary(buffer, file.name, collection || "journey-to-africa") as any;
-        if (cloudinaryResult && cloudinaryResult.secure_url) {
-          finalPath = cloudinaryResult.secure_url;
-        }
-      } catch (cloudinaryError) {
-        console.error("Cloudinary upload failed, falling back to local storage:", cloudinaryError);
-      }
+    // Defense in depth: re-check the actual byte length against the limit.
+    if (buffer.length > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { success: false, error: "File too large. Maximum size is 10MB." },
+        { status: 400 }
+      );
     }
 
-    // Fallback to local storage if Cloudinary didn't work or it's not an image
+    // All allowed types are images
+    const fileType = "image";
+
+    // Attempt Cloudinary Upload
+    let finalPath = "";
+    try {
+      const cloudinaryResult = await uploadToCloudinary(buffer, file.name, collection || "journey-to-africa");
+      if (cloudinaryResult && typeof cloudinaryResult === 'object' && 'secure_url' in cloudinaryResult && cloudinaryResult.secure_url) {
+        finalPath = cloudinaryResult.secure_url as string;
+      }
+    } catch (cloudinaryError) {
+      console.error("Cloudinary upload failed, falling back to local storage:", cloudinaryError);
+    }
+
+    // Fallback to local storage if Cloudinary didn't work
     if (!finalPath) {
       // Ensure uploads directory exists
       const uploadsDir = path.join(process.cwd(), "public", "uploads");
       await mkdir(uploadsDir, { recursive: true });
 
-      // Generate unique filename
-      const ext = path.extname(file.name) || "";
-      const baseName = path.basename(file.name, ext).replace(/[^a-zA-Z0-9-_]/g, "_");
+      // Generate unique filename using a SERVER-DERIVED extension based on the
+      // validated MIME type — never trust the client-supplied extension.
+      const ext = allowedExtension;
+      const rawBase = path.basename(file.name, path.extname(file.name));
+      const baseName = rawBase.replace(/[^a-zA-Z0-9-_]/g, "_") || "file";
       const uniqueName = `${baseName}-${Date.now()}${ext}`;
 
       // Write file to disk

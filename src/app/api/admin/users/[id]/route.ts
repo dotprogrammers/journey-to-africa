@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/api-auth";
+import { z } from "zod";
+
+const updateUserSchema = z.object({
+  isActive: z.boolean().optional(),
+});
 
 /**
  * PUT /api/admin/users/[id] - Update a user (toggle active status)
+ *
+ * SECURITY: Role mutation is intentionally NOT supported here. The `users`
+ * table is for customer accounts, and a customer with role "admin" would be
+ * honored by requireAdmin()/auth.ts as a full admin. Allowing role changes on
+ * this endpoint is a privilege-escalation path, so role is not accepted.
  */
 export async function PUT(
   request: NextRequest,
@@ -20,6 +30,7 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
+    const validatedData = updateUserSchema.parse(body);
 
     const user = await db.user.findUnique({ where: { id } });
 
@@ -33,8 +44,7 @@ export async function PUT(
     const updatedUser = await db.user.update({
       where: { id },
       data: {
-        isActive: body.isActive !== undefined ? body.isActive : user.isActive,
-        role: body.role || user.role,
+        isActive: validatedData.isActive !== undefined ? validatedData.isActive : user.isActive,
       },
       select: {
         id: true,

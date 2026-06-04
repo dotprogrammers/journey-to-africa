@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { stripe } from "@/lib/stripe";
+import Stripe from "stripe";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { sessionId: string } }
+  { params }: { params: Promise<{ sessionId: string }> }
 ) {
   try {
     const { sessionId } = await params;
@@ -30,7 +31,7 @@ export async function GET(
             paidAt: new Date(),
             stripePaymentIntentId: typeof session.payment_intent === 'string' 
               ? session.payment_intent 
-              : (session.payment_intent as any)?.id,
+              : (session.payment_intent as Stripe.PaymentIntent)?.id ?? null,
           },
         });
 
@@ -60,8 +61,9 @@ export async function GET(
         status: session.payment_status,
       },
     });
-  } catch (error: any) {
-    console.error("Error verifying Stripe session:", error);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("Error verifying Stripe session:", errorMessage);
     return NextResponse.json({ success: false, error: "Verification failed" }, { status: 500 });
   }
 }

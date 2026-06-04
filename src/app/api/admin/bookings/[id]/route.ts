@@ -154,7 +154,7 @@ export async function PUT(
           booking.totalAmount,
           booking.currency,
           { userId: booking.userId, bookingId: booking.id }
-        );
+        ).catch((err) => console.error("Failed to send booking confirmation email:", err));
 
         break;
       }
@@ -183,7 +183,7 @@ export async function PUT(
           booking.currency,
           booking.payments?.[0]?.paystackReference || "N/A",
           { userId: booking.userId, bookingId: booking.id }
-        );
+        ).catch((err) => console.error("Failed to send payment successful email:", err));
 
         break;
       }
@@ -257,7 +257,7 @@ export async function PUT(
           booking.currency,
           invoiceUrl,
           { userId: booking.userId, bookingId: booking.id }
-        );
+        ).catch((err) => console.error("Failed to send booking completion email:", err));
 
         break;
       }
@@ -297,7 +297,7 @@ export async function PUT(
           booking.bookingReference,
           validatedData.reason || "Cancelled by admin",
           { userId: booking.userId, bookingId: booking.id }
-        );
+        ).catch((err) => console.error("Failed to send booking cancellation email:", err));
 
         break;
       }

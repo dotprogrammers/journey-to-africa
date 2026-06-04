@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 /**
  * @openapi
  * /api/cms/settings:
@@ -31,7 +34,7 @@ export async function GET() {
     const settings = await db.siteSetting.findMany();
     
     const settingsMap: Record<string, string> = {};
-    settings.forEach((setting: any) => {
+    settings.forEach((setting) => {
       settingsMap[setting.key] = setting.value || "";
     });
 

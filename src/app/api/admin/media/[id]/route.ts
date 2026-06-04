@@ -4,6 +4,13 @@ import { requireAdmin } from "@/lib/api-auth";
 import { unlink } from "fs/promises";
 import path from "path";
 import { deleteFromCloudinary, extractPublicId } from "@/lib/cloudinary";
+import { z } from "zod";
+
+const updateMediaSchema = z.object({
+  altText: z.string().max(255).optional(),
+  collection: z.string().max(100).optional(),
+  name: z.string().max(255).optional(),
+});
 
 /**
  * PUT /api/admin/media/[id] - Update media file metadata (alt text, collection)
@@ -23,6 +30,7 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
+    const validatedData = updateMediaSchema.parse(body);
 
     const mediaFile = await db.mediaFile.findUnique({ where: { id } });
 
@@ -36,9 +44,9 @@ export async function PUT(
     const updated = await db.mediaFile.update({
       where: { id },
       data: {
-        altText: body.altText !== undefined ? body.altText : mediaFile.altText,
-        collection: body.collection !== undefined ? body.collection : mediaFile.collection,
-        name: body.name !== undefined ? body.name : mediaFile.name,
+        altText: validatedData.altText !== undefined ? validatedData.altText : mediaFile.altText,
+        collection: validatedData.collection !== undefined ? validatedData.collection : mediaFile.collection,
+        name: validatedData.name !== undefined ? validatedData.name : mediaFile.name,
       },
     });
 

@@ -32,7 +32,7 @@ export async function GET() {
     });
 
     const totalRevenue = successfulPayments.reduce(
-      (sum: number, payment: any) => sum + (payment.amount || 0),
+      (sum: number, payment: { amount: number | null; currency: string }) => sum + (payment.amount || 0),
       0
     );
 
@@ -107,7 +107,7 @@ export async function GET() {
       refunded: 0,
     };
 
-    bookingsByStatus.forEach((item: any) => {
+    bookingsByStatus.forEach((item) => {
       statusCounts[item.status] = item._count.id;
     });
 

@@ -3,6 +3,9 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/api-auth";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const bulkUpdateSettingsSchema = z.object({
   settings: z.array(
     z.object({
@@ -31,14 +34,14 @@ export async function GET() {
 
     // Group settings by group name
     const grouped = settings.reduce(
-      (acc: Record<string, any[]>, setting: any) => {
+      (acc: Record<string, Array<{ key: string; value: string; group: string; type: string; label: string; description: string | null; sortOrder: number }>>, setting) => {
         if (!acc[setting.group]) {
           acc[setting.group] = [];
         }
         acc[setting.group].push(setting);
         return acc;
       },
-      {} as Record<string, any[]>
+      {} as Record<string, Array<{ key: string; value: string; group: string; type: string; label: string; description: string | null; sortOrder: number }>>
     );
 
     return NextResponse.json({ success: true, data: grouped });

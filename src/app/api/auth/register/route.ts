@@ -3,6 +3,7 @@ import { hash } from "bcryptjs";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import crypto from "crypto";
+import { checkRateLimit, getClientIpFromHeaders } from "@/lib/rate-limit";
 
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -14,47 +15,44 @@ const registerSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: max 5 registration attempts per IP per 15 minutes
+    const clientIp = getClientIpFromHeaders(request.headers);
+    const rateLimit = checkRateLimit(clientIp, {
+      maxRequests: 5,
+      windowSeconds: 15 * 60,
+      keyPrefix: 'register',
+    });
+
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { success: false, error: "Too many registration attempts. Please try again later." },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const validatedData = registerSchema.parse(body);
 
-    // Check if email already exists
+    // Check if email already exists BEFORE doing expensive password hashing.
     const existingUser = await db.user.findUnique({
       where: { email: validatedData.email },
     });
+
+    if (existingUser) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: "An account with this email already exists. Please log in instead.",
+        },
+        { status: 409 }
+      );
+    }
 
     // Use provided password or generate a random one
     const plainPassword = validatedData.password || crypto.randomBytes(12).toString('hex');
 
     // Hash password
     const hashedPassword = await hash(plainPassword, 12);
-
-    if (existingUser) {
-      // Update existing user with new password for this "session"
-      const updatedUser = await db.user.update({
-        where: { id: existingUser.id },
-        data: {
-          password: hashedPassword,
-          name: validatedData.name, // Update name/phone/country if changed
-          phone: validatedData.phone,
-          country: validatedData.country,
-        },
-      });
-
-      return NextResponse.json(
-        { 
-          success: true, 
-          message: "User exists, updated session",
-          data: {
-            id: updatedUser.id,
-            name: updatedUser.name,
-            email: updatedUser.email,
-            role: updatedUser.role,
-            generatedPassword: plainPassword
-          } 
-        },
-        { status: 200 }
-      );
-    }
 
     // Create user
     const user = await db.user.create({
@@ -82,9 +80,15 @@ export async function POST(request: NextRequest) {
       { 
         success: true, 
         data: { 
-          ...user,
-          // Return the generated password so the frontend can sign in immediately
-          generatedPassword: !validatedData.password ? plainPassword : null 
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          country: user.country,
+          role: user.role,
+          createdAt: user.createdAt,
+          // Never return password - if generated, it will be sent via email
+          passwordGenerated: !validatedData.password,
         } 
       },
       { status: 201 }

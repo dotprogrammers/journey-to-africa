@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { requireAuth } from "@/lib/api-auth";
+import { requireAuth, isAdminRole } from "@/lib/api-auth";
 import { invoiceService } from "@/lib/invoice";
-import path from "path";
-import fs from "fs";
 
 /**
  * GET /api/invoices/[id] - Get invoice details, generate PDF if not exists
@@ -55,7 +53,7 @@ export async function GET(
     }
 
     // Users can only see their own invoices (unless admin)
-    if (invoice.booking.userId !== user.id && user.role !== "admin") {
+    if (invoice.booking.userId !== user.id && !isAdminRole(user.role)) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
         { status: 403 }
@@ -66,7 +64,7 @@ export async function GET(
     if (download) {
       const pdfBuffer = await generateInvoicePDF(invoice);
 
-      return new NextResponse(pdfBuffer as any, {
+      return new NextResponse(new Uint8Array(pdfBuffer), {
         headers: {
           "Content-Type": "application/pdf",
           "Content-Disposition": `attachment; filename="${invoice.invoiceNumber}.pdf"`,

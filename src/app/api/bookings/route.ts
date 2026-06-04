@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { requireAuth } from "@/lib/api-auth";
+import { requireAuth, isAdminRole } from "@/lib/api-auth";
 import { emailService } from "@/lib/email";
+import { checkRateLimit, getClientIpFromHeaders } from "@/lib/rate-limit";
 
 const createBookingSchema = z.object({
   pricingTierId: z.string().min(1, "Pricing tier is required"),
@@ -15,14 +16,10 @@ const createBookingSchema = z.object({
   nationality: z.string().optional(),
 });
 
-/**
- * Generate a booking reference: JTA-YYYY-NNNN
- */
-async function generateBookingReference(): Promise<string> {
-  const year = new Date().getFullYear();
-  const count = await db.booking.count();
-  const sequence = (count + 1).toString().padStart(4, "0");
-  return `JTA-${year}-${sequence}`;
+function generateBookingReference(): string {
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+  return `JTA-${timestamp}-${random}`;
 }
 
 /**
@@ -74,7 +71,7 @@ export async function GET(request: NextRequest) {
     const bookingReference = searchParams.get("ref");
 
     // Users can only see their own bookings (unless admin)
-    if (userId !== user.id && user.role !== "admin") {
+    if (userId !== user.id && !isAdminRole(user.role)) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
         { status: 403 }
@@ -108,7 +105,7 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      if (booking.userId !== user.id && user.role !== "admin") {
+      if (booking.userId !== user.id && !isAdminRole(user.role)) {
         return NextResponse.json(
           { success: false, error: "Unauthorized" },
           { status: 403 }
@@ -194,6 +191,21 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: max 10 booking creations per IP per hour
+    const clientIp = getClientIpFromHeaders(request.headers);
+    const rateLimit = checkRateLimit(clientIp, {
+      maxRequests: 10,
+      windowSeconds: 60 * 60,
+      keyPrefix: 'bookings-create',
+    });
+
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { success: false, error: "Too many booking attempts. Please try again later." },
+        { status: 429 }
+      );
+    }
+
     const user = await requireAuth();
     if (!user) {
       return NextResponse.json(
@@ -234,7 +246,7 @@ export async function POST(request: NextRequest) {
     const totalAmount = subtotal;
 
     // Generate booking reference
-    const bookingReference = await generateBookingReference();
+    const bookingReference = generateBookingReference();
 
     // Create the booking
     const booking = await db.booking.create({
@@ -270,7 +282,7 @@ export async function POST(request: NextRequest) {
       booking.currency,
       booking.numberOfTravelers,
       { userId: user.id, bookingId: booking.id }
-    );
+    ).catch((err) => console.error("Failed to send booking received email:", err));
 
     return NextResponse.json(
       { success: true, data: booking },

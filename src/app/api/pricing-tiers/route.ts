@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 /**
  * @openapi
  * /api/pricing-tiers:
@@ -39,7 +42,7 @@ export async function GET() {
     });
 
     // Calculate availability for each tier
-    const tiersWithAvailability = tiers.map((tier: any) => ({
+    const tiersWithAvailability = tiers.map((tier) => ({
       id: tier.id,
       name: tier.name,
       subtitle: tier.subtitle,

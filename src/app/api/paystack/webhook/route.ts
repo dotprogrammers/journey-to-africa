@@ -64,15 +64,24 @@ export async function POST(request: NextRequest) {
           isProcessed: false,
         },
       });
-    } catch {
-      // Event already processed (unique constraint on eventId)
-      return NextResponse.json({ success: true, message: "Event already processed" });
+    } catch (dbError: unknown) {
+      // Only a unique-constraint violation means this event was already received.
+      // Any other DB error should surface as a 500 so Paystack retries delivery.
+      const message = dbError instanceof Error ? dbError.message : String(dbError);
+      if (message.includes("Unique constraint") || message.includes("Duplicate")) {
+        return NextResponse.json({ success: true, message: "Event already processed" });
+      }
+      console.error("Failed to record Paystack webhook:", dbError);
+      return NextResponse.json(
+        { success: false, error: "Failed to record webhook" },
+        { status: 500 }
+      );
     }
 
     // Return 200 immediately, process asynchronously
     // Process charge.success events
     if (eventType === "charge.success") {
-      processSuccessfulCharge(eventData).catch((err) => {
+      processSuccessfulCharge(eventData, eventId).catch((err) => {
         console.error("Error processing charge.success webhook:", err);
       });
     }
@@ -103,7 +112,7 @@ async function processSuccessfulCharge(data: {
   customer?: {
     email: string;
   };
-}) {
+}, eventId: string) {
   try {
     // Find payment by reference
     const payment = await db.payment.findUnique({
@@ -128,6 +137,10 @@ async function processSuccessfulCharge(data: {
       return;
     }
 
+    // Capture the booking status BEFORE we change it so we can decide whether
+    // the tier capacity has already been counted (e.g. admin confirmed first).
+    const bookingStatusBeforePayment = payment.booking.status;
+
     // Update payment status
     await db.payment.update({
       where: { id: payment.id },
@@ -150,19 +163,23 @@ async function processSuccessfulCharge(data: {
       },
     });
 
-    // Increment tier's currentBookings
-    await db.pricingTier.update({
-      where: { id: payment.booking.pricingTierId },
-      data: {
-        currentBookings: {
-          increment: payment.booking.numberOfTravelers,
+    // Increment tier's currentBookings only if the capacity wasn't already
+    // counted. A "confirmed" booking has already been counted at confirm time,
+    // so counting again here would double-count the slots.
+    if (!["confirmed", "paid", "completed"].includes(bookingStatusBeforePayment)) {
+      await db.pricingTier.update({
+        where: { id: payment.booking.pricingTierId },
+        data: {
+          currentBookings: {
+            increment: payment.booking.numberOfTravelers,
+          },
         },
-      },
-    });
+      });
+    }
 
-    // Mark webhook as processed
+    // Mark ONLY this webhook event as processed (by its unique eventId)
     await db.paystackWebhook.updateMany({
-      where: { eventType: "charge.success", isProcessed: false },
+      where: { eventId },
       data: {
         isProcessed: true,
         processedAt: new Date(),

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { requireAuth } from "@/lib/api-auth";
+import { requireAuth, isAdminRole } from "@/lib/api-auth";
 import { stripe } from "@/lib/stripe";
+import { checkRateLimit, getClientIpFromHeaders } from "@/lib/rate-limit";
 
 const initializeSchema = z.object({
   bookingId: z.string().min(1, "Booking ID is required"),
@@ -10,6 +11,21 @@ const initializeSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: max 10 payment initializations per IP per hour
+    const clientIp = getClientIpFromHeaders(request.headers);
+    const rateLimit = checkRateLimit(clientIp, {
+      maxRequests: 10,
+      windowSeconds: 60 * 60,
+      keyPrefix: 'stripe-init',
+    });
+
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { success: false, error: "Too many payment attempts. Please try again later." },
+        { status: 429 }
+      );
+    }
+
     const user = await requireAuth();
     if (!user) {
       return NextResponse.json(
@@ -33,7 +49,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (booking.userId !== user.id && user.role !== "admin") {
+    if (booking.userId !== user.id && !isAdminRole(user.role)) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
         { status: 403 }
@@ -94,7 +110,7 @@ export async function POST(request: NextRequest) {
         sessionId: session.id,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { success: false, error: "Validation failed", details: error.issues },
@@ -102,9 +118,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error("Error initializing Stripe session:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("Error initializing Stripe session:", errorMessage);
     return NextResponse.json(
-      { success: false, error: error.message || "Failed to initialize payment" },
+      { success: false, error: "Failed to initialize payment" },
       { status: 500 }
     );
   }

@@ -9,6 +9,7 @@ async function main() {
   // Clean up existing data (order matters due to foreign keys)
   console.log("🧹 Cleaning existing data...");
   await prisma.paystackWebhook.deleteMany();
+  await prisma.stripeWebhook.deleteMany();
   await prisma.activityLog.deleteMany();
   await prisma.emailLog.deleteMany();
   await prisma.invoice.deleteMany();
@@ -23,24 +24,36 @@ async function main() {
   await prisma.mediaFile.deleteMany();
   await prisma.pricingTier.deleteMany();
   await prisma.emailTemplate.deleteMany();
+  await prisma.adminIpWhitelist.deleteMany();
+  await prisma.passwordResetToken.deleteMany();
   await prisma.adminUser.deleteMany();
   console.log("✅ Existing data cleaned.\n");
 
   // ============================================================
   // 1. ADMIN USER
   // ============================================================
-  console.log("👤 Creating admin user...");
+  console.log("👤 Creating admin users...");
   const hashedPassword = await hash("admin123", 12);
+  const superAdmin = await prisma.adminUser.create({
+    data: {
+      email: "super_admin@journeytoafrica.com",
+      name: "Super Admin",
+      hashedPassword,
+      role: "super_admin",
+      isActive: true,
+    },
+  });
   const admin = await prisma.adminUser.create({
     data: {
       email: "admin@journeytoafrica.com",
-      name: "Admin",
+      name: "Standard Admin",
       hashedPassword,
       role: "admin",
       isActive: true,
     },
   });
-  console.log(`  ✅ Admin user: ${admin.email}\n`);
+  console.log(`  ✅ Super Admin user: ${superAdmin.email}`);
+  console.log(`  ✅ Standard Admin user: ${admin.email}\n`);
 
   // ============================================================
   // 2. SITE SETTINGS

@@ -71,8 +71,40 @@ model AdminUser {
   lastLoginAt    DateTime? @db.DateTime(3)
   createdAt      DateTime  @default(now()) @db.DateTime(3)
   updatedAt      DateTime  @updatedAt @db.DateTime(3)
+  activityLogs   ActivityLog[]
+  ipWhitelists   AdminIpWhitelist[]
 
   @@map("admin_users")
+}
+
+model AdminIpWhitelist {
+  id          String    @id @default(cuid()) @db.VarChar(36)
+  adminId     String    @db.VarChar(36)
+  ipAddress   String    @db.VarChar(45)
+  label       String?   @db.VarChar(255)
+  isActive    Boolean   @default(true)
+  admin       AdminUser @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now()) @db.DateTime(3)
+  updatedAt   DateTime  @updatedAt @db.DateTime(3)
+
+  @@unique([adminId, ipAddress])
+  @@index([adminId])
+  @@map("admin_ip_whitelists")
+}
+
+model PasswordResetToken {
+  id           String    @id @default(cuid()) @db.VarChar(36)
+  email        String    @db.VarChar(255)
+  encryptedOtp String    @db.VarChar(500)
+  expiresAt    DateTime  @db.DateTime(3)
+  attempts     Int       @default(0) @db.Int
+  maxAttempts  Int       @default(5) @db.Int
+  isUsed       Boolean   @default(false)
+  createdAt    DateTime  @default(now()) @db.DateTime(3)
+
+  @@index([email])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
 }
 
 // ============================================================
@@ -379,18 +411,21 @@ model EmailLog {
 // ============================================================
 
 model ActivityLog {
-  id          String   @id @default(cuid()) @db.VarChar(36)
-  userId      String?  @db.VarChar(36)
-  action      String   @db.VarChar(100)
-  subjectType String?  @db.VarChar(100)
-  subjectId   String?  @db.VarChar(36)
-  properties  String?  @db.Text // JSON
-  ipAddress   String?  @db.VarChar(45) // IPv4 max 15, IPv6 max 45
-  userAgent   String?  @db.Text
-  user        User?    @relation(fields: [userId], references: [id])
-  createdAt   DateTime @default(now()) @db.DateTime(3)
+  id          String       @id @default(cuid()) @db.VarChar(36)
+  userId      String?      @db.VarChar(36)
+  adminId     String?      @db.VarChar(36)
+  action      String       @db.VarChar(100)
+  subjectType String?      @db.VarChar(100)
+  subjectId   String?      @db.VarChar(36)
+  properties  String?      @db.Text // JSON
+  ipAddress   String?      @db.VarChar(45) // IPv4 max 15, IPv6 max 45
+  userAgent   String?      @db.Text
+  user        User?        @relation(fields: [userId], references: [id])
+  admin       AdminUser?   @relation(fields: [adminId], references: [id])
+  createdAt   DateTime     @default(now()) @db.DateTime(3)
 
   @@index([userId])
+  @@index([adminId])
   @@index([action])
   @@index([subjectType, subjectId])
   @@map("activity_logs")

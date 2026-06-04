@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { requireAuth } from "@/lib/api-auth";
+import { requireAuth, isAdminRole } from "@/lib/api-auth";
 
 const addTravelerSchema = z.object({
   isPrimary: z.boolean().default(false),
@@ -50,7 +50,7 @@ export async function POST(
       );
     }
 
-    if (booking.userId !== user.id && user.role !== "admin") {
+    if (booking.userId !== user.id && !isAdminRole(user.role)) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
         { status: 403 }

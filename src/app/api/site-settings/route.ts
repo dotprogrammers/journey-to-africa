@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 /**
  * @openapi
  * /api/site-settings:
@@ -23,7 +26,7 @@ export async function GET() {
 
     // Group settings by group name
     const grouped = settings.reduce(
-      (acc: Record<string, any[]>, setting: any) => {
+      (acc: Record<string, Array<{ key: string; value: string; type: string; label: string }>>, setting) => {
         if (!acc[setting.group]) {
           acc[setting.group] = [];
         }

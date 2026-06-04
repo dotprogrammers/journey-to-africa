@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { requireAuth } from "@/lib/api-auth";
+import { requireAuth, isAdminRole } from "@/lib/api-auth";
 import { paystack } from "@/lib/paystack";
+import { checkRateLimit, getClientIpFromHeaders } from "@/lib/rate-limit";
 
 const initializeSchema = z.object({
   bookingId: z.string().min(1, "Booking ID is required"),
@@ -13,6 +14,21 @@ const PAYSTACK_TEST_LIMIT_NGN = 500000;
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: max 10 payment initializations per IP per hour
+    const clientIp = getClientIpFromHeaders(request.headers);
+    const rateLimit = checkRateLimit(clientIp, {
+      maxRequests: 10,
+      windowSeconds: 60 * 60,
+      keyPrefix: 'paystack-init',
+    });
+
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { success: false, error: "Too many payment attempts. Please try again later." },
+        { status: 429 }
+      );
+    }
+
     const user = await requireAuth();
     if (!user) {
       return NextResponse.json(
@@ -36,7 +52,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (booking.userId !== user.id && user.role !== "admin") {
+    if (booking.userId !== user.id && !isAdminRole(user.role)) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
         { status: 403 }
@@ -79,9 +95,12 @@ export async function POST(request: NextRequest) {
         booking.bookingReference,
         currency
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
       // If currency is not supported, fallback to default currency of the account
-      if (error.response?.data?.code === 'unsupported_currency') {
+      const errObj = error as Record<string, unknown> | undefined;
+      const response = errObj?.response as Record<string, unknown> | undefined;
+      const data = response?.data as Record<string, unknown> | undefined;
+      if (data?.code === 'unsupported_currency') {
         console.warn(`Currency ${currency} not supported by merchant, falling back to default account currency`);
 
         // Convert to NGN equivalent as a baseline for the amount, 
@@ -146,7 +165,7 @@ export async function POST(request: NextRequest) {
         isTestMode
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { success: false, error: "Validation failed", details: error.issues },
@@ -154,15 +173,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (error.response?.data?.message) {
-      console.error("Paystack API error:", error.response.data);
+    const errObj = error as Record<string, unknown> | undefined;
+    const response = errObj?.response as Record<string, unknown> | undefined;
+    const data = response?.data as Record<string, unknown> | undefined;
+    if (data?.message) {
+      const msg = String(data.message);
+      console.error("Paystack API error:", data);
       return NextResponse.json(
-        { success: false, error: error.response.data.message },
+        { success: false, error: msg },
         { status: 400 }
       );
     }
 
-    console.error("Error initializing Paystack transaction:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("Error initializing Paystack transaction:", errorMessage);
     return NextResponse.json(
       { success: false, error: "Failed to initialize payment" },
       { status: 500 }

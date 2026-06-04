@@ -1,8 +1,24 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { checkRateLimit, getClientIpFromHeaders } from "@/lib/rate-limit";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // Rate limit: max 30 requests per IP per minute for config endpoint
+    const clientIp = getClientIpFromHeaders(request.headers);
+    const rateLimit = checkRateLimit(clientIp, {
+      maxRequests: 30,
+      windowSeconds: 60,
+      keyPrefix: 'payment-config',
+    });
+
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { success: false, error: "Too many requests" },
+        { status: 429 }
+      );
+    }
+
     const gatewayConfig = await db.systemConfiguration.findUnique({
       where: { key: "active_payment_gateway" },
     });

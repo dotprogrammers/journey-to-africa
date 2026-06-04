@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 /**
  * @openapi
  * /api/cms/trips:
@@ -85,7 +88,7 @@ export async function GET() {
     });
 
     // Transform pricing tiers to what the frontend expects
-    const pricing = tiers.map((tier: any) => ({
+    const pricing = tiers.map((tier) => ({
       id: tier.id,
       name: tier.name,
       description: tier.subtitle,
@@ -96,7 +99,7 @@ export async function GET() {
     }));
 
     // Transform stats
-    const stats = statsSection?.items.map((item: any) => ({
+    const stats = statsSection?.items.map((item) => ({
       label: item.title,
       value: item.subtitle,
       sortOrder: item.sortOrder

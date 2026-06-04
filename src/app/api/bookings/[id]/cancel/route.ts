@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { requireAuth } from "@/lib/api-auth";
+import { requireAuth, isAdminRole } from "@/lib/api-auth";
 import { emailService } from "@/lib/email";
 
 /**
@@ -35,7 +35,7 @@ export async function POST(
     }
 
     // Users can only cancel their own bookings (unless admin)
-    if (booking.userId !== user.id && user.role !== "admin") {
+    if (booking.userId !== user.id && !isAdminRole(user.role)) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
         { status: 403 }
@@ -82,7 +82,7 @@ export async function POST(
       booking.bookingReference,
       body.reason || "Cancelled by user",
       { userId: booking.userId, bookingId: booking.id }
-    );
+    ).catch((err) => console.error("Failed to send booking cancellation email:", err));
 
     return NextResponse.json({ success: true, data: updatedBooking });
   } catch (error) {

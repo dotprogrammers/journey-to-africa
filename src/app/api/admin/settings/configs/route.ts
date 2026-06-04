@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { encrypt, decrypt } from "@/lib/encryption";
+import { requireAdmin } from "@/lib/api-auth";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 interface SystemConfig {
   id: string;
@@ -14,11 +18,19 @@ interface SystemConfig {
 
 export async function GET() {
   try {
+    const currentAdmin = await requireAdmin();
+    if (!currentAdmin || currentAdmin.role !== "super_admin") {
+      return NextResponse.json(
+        { success: false, error: "Super Admin privileges required to manage configurations" },
+        { status: 403 }
+      );
+    }
+
     const configs = await db.systemConfiguration.findMany({
       orderBy: { createdAt: "desc" },
     });
 
-    const processedConfigs = configs.map((config: any) => ({
+    const processedConfigs = configs.map((config) => ({
       ...config,
       value: config.isEncrypted ? "********" : config.value
     }));
@@ -32,6 +44,14 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const currentAdmin = await requireAdmin();
+    if (!currentAdmin || currentAdmin.role !== "super_admin") {
+      return NextResponse.json(
+        { success: false, error: "Super Admin privileges required to manage configurations" },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const { key, value, label, description, type, isEncrypted = true } = body;
 
@@ -68,5 +88,33 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error saving system config:", error);
     return NextResponse.json({ success: false, error: "Failed to save configuration" }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const currentAdmin = await requireAdmin();
+    if (!currentAdmin || currentAdmin.role !== "super_admin") {
+      return NextResponse.json(
+        { success: false, error: "Super Admin privileges required to manage configurations" },
+        { status: 403 }
+      );
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ success: false, error: "Config ID is required" }, { status: 400 });
+    }
+
+    await db.systemConfiguration.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ success: true, data: { message: "Configuration deleted" } });
+  } catch (error) {
+    console.error("Error deleting system config:", error);
+    return NextResponse.json({ success: false, error: "Failed to delete configuration" }, { status: 500 });
   }
 }

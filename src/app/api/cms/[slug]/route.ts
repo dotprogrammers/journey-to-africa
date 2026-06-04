@@ -51,7 +51,7 @@ export async function GET(
     }
 
     // Transform items to match expected formats in components
-    const items = section.items.map((item: any) => ({
+    const items = section.items.map((item) => ({
       id: item.id,
       title: item.title,
       subtitle: item.subtitle,
@@ -71,7 +71,7 @@ export async function GET(
       subtitle: section.subheading,
       tagline: section.label,
       main_image: section.backgroundImage,
-      side_images: items.filter((item: any) => item.type === "image"), // Map image items to side_images
+      side_images: items.filter((item) => item.type === "image"), // Map image items to side_images
       items: items,
       buttons: {
         primary: { text: section.ctaPrimaryText, link: section.ctaPrimaryLink },

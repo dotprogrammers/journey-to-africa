@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { requireAuth } from "@/lib/api-auth";
+import { requireAuth, isAdminRole } from "@/lib/api-auth";
 
 /**
  * GET /api/bookings/[id] - Get booking details with travelers and payments
@@ -51,7 +51,7 @@ export async function GET(
     }
 
     // Users can only see their own bookings (unless admin)
-    if (booking.userId !== user.id && user.role !== "admin") {
+    if (booking.userId !== user.id && !isAdminRole(user.role)) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
         { status: 403 }
@@ -99,7 +99,7 @@ export async function PUT(
     }
 
     // Users can only cancel their own bookings
-    if (booking.userId !== user.id && user.role !== "admin") {
+    if (booking.userId !== user.id && !isAdminRole(user.role)) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
         { status: 403 }

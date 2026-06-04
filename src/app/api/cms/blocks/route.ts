@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 /**
  * @openapi
  * /api/cms/blocks:
@@ -61,9 +64,9 @@ export async function GET() {
       },
     });
 
-    const blocks: Record<string, any> = {};
+    const blocks: Record<string, Array<Record<string, unknown>>> = {};
     
-    sections.forEach((section: any) => {
+    sections.forEach((section) => {
       const data = {
         id: section.id,
         title: section.heading,
@@ -74,7 +77,7 @@ export async function GET() {
         cta_primary: { text: section.ctaPrimaryText, link: section.ctaPrimaryLink },
         cta_secondary: { text: section.ctaSecondaryText, link: section.ctaSecondaryLink },
         note: section.note,
-        items: section.items.map((item: any) => ({
+        items: section.items.map((item) => ({
           id: item.id,
           title: item.title,
           subtitle: item.subtitle,

@@ -10,26 +10,37 @@ export async function POST(request: NextRequest) {
   const signature = headersList.get("stripe-signature");
 
   if (!signature) {
-    return NextResponse.json({ error: "Missing stripe-signature" }, { status: 400 });
+    return NextResponse.json({ success: false, error: "Missing stripe-signature" }, { status: 400 });
   }
 
   let event: Stripe.Event;
 
   try {
     event = await stripe.verifyWebhookSignature(body, signature) as Stripe.Event;
-  } catch (err: any) {
-    console.error(`Webhook signature verification failed: ${err.message}`);
-    return NextResponse.json({ error: "Webhook Error" }, { status: 400 });
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : "Unknown error";
+    console.error(`Webhook signature verification failed: ${errorMessage}`);
+    return NextResponse.json({ success: false, error: "Webhook Error" }, { status: 400 });
   }
 
-  // Record the webhook
-  await db.stripeWebhook.create({
-    data: {
-      eventId: event.id,
-      eventType: event.type,
-      payload: body,
-    },
-  });
+  // Record the webhook (handle duplicate events gracefully)
+  try {
+    await db.stripeWebhook.create({
+      data: {
+        eventId: event.id,
+        eventType: event.type,
+        payload: body,
+      },
+    });
+  } catch (dbError: unknown) {
+    // Duplicate eventId — already recorded, continue processing
+    const errorMessage = dbError instanceof Error ? dbError.message : String(dbError);
+    if (errorMessage.includes('Unique constraint') || errorMessage.includes('Duplicate')) {
+      console.log(`Webhook ${event.id} already recorded, continuing processing`);
+    } else {
+      console.error('Failed to record webhook:', dbError);
+    }
+  }
 
   try {
     switch (event.type) {
@@ -39,8 +50,8 @@ export async function POST(request: NextRequest) {
         break;
       }
       case "payment_intent.succeeded": {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        // Logic for direct payment intent if needed
+        // Direct payment intent handling is not used; checkout.session.completed
+        // is the source of truth for booking payments.
         break;
       }
     }
@@ -52,13 +63,14 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ received: true });
-  } catch (err: any) {
-    console.error(`Error processing webhook ${event.id}:`, err);
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : "Unknown error";
+    console.error(`Error processing webhook ${event.id}:`, errorMessage);
     await db.stripeWebhook.update({
       where: { eventId: event.id },
-      data: { processingError: err.message },
+      data: { processingError: errorMessage },
     });
-    return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 });
+    return NextResponse.json({ success: false, error: "Webhook processing failed" }, { status: 500 });
   }
 }
 
@@ -80,7 +92,7 @@ async function handleSuccessfulPayment(session: Stripe.Checkout.Session) {
       paidAt: new Date(),
       stripePaymentIntentId: typeof session.payment_intent === 'string' 
         ? session.payment_intent 
-        : (session.payment_intent as any)?.id,
+        : (session.payment_intent as Stripe.PaymentIntent)?.id ?? null,
       gatewayResponse: JSON.stringify(session),
     },
   });
@@ -93,4 +105,18 @@ async function handleSuccessfulPayment(session: Stripe.Checkout.Session) {
       paidAt: new Date(),
     },
   });
+
+  // Increment tier's currentBookings only if capacity wasn't already counted
+  // (e.g. admin confirmed first) so Stripe counts consistently with Paystack
+  // and we never double-count slots.
+  if (!["confirmed", "paid", "completed"].includes(booking.status)) {
+    await db.pricingTier.update({
+      where: { id: booking.pricingTierId },
+      data: {
+        currentBookings: {
+          increment: booking.numberOfTravelers,
+        },
+      },
+    });
+  }
 }
